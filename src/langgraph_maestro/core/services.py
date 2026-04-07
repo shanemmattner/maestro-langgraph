@@ -62,7 +62,8 @@ def _is_langfuse_healthy() -> bool:
 def _start_stack() -> None:
     start_sh = _INFRA_DIR / "start.sh"
     if not start_sh.exists():
-        raise RuntimeError(f"start.sh not found at {start_sh}")
+        logger.warning("services: start.sh not found at %s — run 'infrastructure/setup.sh' or start Langfuse manually", start_sh)
+        return
 
     try:
         result = subprocess.run(
