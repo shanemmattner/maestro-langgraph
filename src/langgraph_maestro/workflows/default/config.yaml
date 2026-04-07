@@ -1,0 +1,56 @@
+workflow: default
+
+phases:
+  decompose:
+    - MiniMax-M2.5-highspeed
+  execute:
+    - MiniMax-M2.5-highspeed
+  review:
+    - MiniMax-M2.5-highspeed
+  critique:
+    enabled: false
+    models:
+      - MiniMax-M2.5-highspeed
+  test_gen:
+    enabled: false
+    models:
+      - MiniMax-M2.5-highspeed
+  verify:
+    enabled: true
+
+loops:
+  max_critique_rounds: 1
+  max_review_rounds: 2
+  max_replan_rounds: 1
+
+escalation:
+  enabled: false
+  confidence_threshold: 0.3
+
+skills:
+  model_overlays:
+    minimax: |
+      You must return valid JSON without markdown fences.
+      Do not add preamble or commentary — JSON only.
+
+prompt_engineering:
+  enabled: true
+  model: MiniMax-M2.5-highspeed
+  phases:
+    decompose:
+      enabled: true
+    execute:
+      enabled: true
+    review:
+      enabled: true
+  timeout: 120
+  fallback_to_raw: true
+
+timeouts:
+  default: 300
+  models:
+    minimax: 300
+    claude: 600
+  stall:
+    no_progress_threshold: 3
+    loop_detection_window: 5

@@ -61,3 +61,9 @@ markers = [
     "tracing: marks tests that require tracing (Langfuse/OTel)",
     "enable_pe: marks tests that need real PE (improve_prompt not mocked)",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+    "pytest-cov>=7.1.0",
+]

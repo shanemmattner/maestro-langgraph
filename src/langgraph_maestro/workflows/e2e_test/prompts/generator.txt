@@ -1,0 +1,16 @@
+Generate executable end-to-end test code.
+
+## Test Designs
+{test_designs}
+
+Generate valid Python test code that:
+- Uses pytest framework
+- Has clear test function names matching test_name
+- Includes proper assertions
+- Handles setup/teardown
+- Is self-contained and executable
+
+Return valid JSON:
+{{
+  "test_code": "import pytest\\n\\ndef test_example():\\n    assert True"
+}}

@@ -1,0 +1,25 @@
+name: meta_review
+description: Meta review workflow for analyzing run traces and logs
+
+phases:
+  load_run:
+    timeout: 30
+    description: Load run data from langfuse trace or log file
+    
+  analyze:
+    timeout: 120
+    description: Analyze the run data and extract summary/metrics
+    
+  critique:
+    timeout: 120
+    description: Critique the run and identify issues
+    
+  recommend:
+    timeout: 120
+    description: Generate recommendations based on analysis
+    
+  report:
+    timeout: 60
+    description: Generate final markdown report
+
+model: claude-sonnet-4-6

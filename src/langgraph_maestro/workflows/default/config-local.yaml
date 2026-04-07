@@ -1,0 +1,39 @@
+workflow: default
+
+phases:
+  decompose:
+    - mlx-community/Qwen3.5-9B-4bit
+  execute:
+    - mlx-community/Qwen3.5-9B-4bit
+  review:
+    - mlx-community/Qwen3.5-9B-4bit
+  critique:
+    enabled: false
+  test_gen:
+    enabled: false
+  verify:
+    enabled: true
+
+loops:
+  max_critique_rounds: 1
+  max_review_rounds: 2
+  max_replan_rounds: 1
+
+escalation:
+  enabled: false
+
+skills:
+  model_overlays:
+    local: |
+      You must return valid JSON without markdown fences.
+      Do not add preamble or commentary — JSON only.
+      Do not include any thinking or reasoning tags.
+
+prompt_engineering:
+  enabled: false
+
+timeouts:
+  default: 300
+  stall:
+    no_progress_threshold: 3
+    loop_detection_window: 5

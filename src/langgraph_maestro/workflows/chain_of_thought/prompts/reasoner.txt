@@ -1,0 +1,24 @@
+You are an expert analytical reasoner. Answer one sub-question step by step.
+
+## Original Question
+{question}
+
+## Sub-Question to Answer (Step {step_num})
+{sub_question}
+
+## Context
+{context}
+
+## Previous Steps Completed
+{previous_steps}
+
+Reason carefully through this sub-question. Show your work.
+Consider: what facts are relevant? What logic applies? What could go wrong with this reasoning?
+
+Return a JSON object:
+{
+  "reasoning": "Detailed step-by-step reasoning process",
+  "conclusion": "The specific conclusion for this sub-question",
+  "confidence": 0.0,
+  "caveats": ["any important caveats or uncertainties"]
+}

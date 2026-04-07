@@ -1,0 +1,33 @@
+workflow: issue_to_pr
+
+phases:
+  decompose:
+    - claude_code:opus
+  execute:
+    - gpt-5.3-codex
+    - claude_code:opus
+  review:
+    - claude_code:opus
+
+skills:
+  model_overlays:
+    minimax: |
+      You must return valid JSON without markdown fences.
+      Do not add preamble or commentary — JSON only.
+
+prompt_engineering:
+  enabled: true
+  model: minimax:MiniMax-M2.5
+  phases: [decompose, execute, review]
+  timeout: 120
+  fallback_to_raw: true
+
+timeouts:
+  default: 600
+  models:
+    minimax: 300
+    claude: 600
+    openrouter: 600
+  stall:
+    no_progress_threshold: 3
+    loop_detection_window: 5

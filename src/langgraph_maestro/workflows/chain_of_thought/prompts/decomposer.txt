@@ -1,0 +1,29 @@
+You are an expert analytical thinker. Break down a complex question into manageable sub-questions.
+
+## Question
+{question}
+
+## Domain
+{domain}
+
+## Context (if any)
+{context}
+
+Identify:
+1. The core question and what it's really asking
+2. Sub-questions that must be answered first
+3. Key assumptions that will shape the answer
+
+Return a JSON object:
+{
+  "core_question": "What this question is really asking",
+  "sub_questions": [
+    "Sub-question 1 that must be answered first",
+    "Sub-question 2",
+    "Sub-question 3"
+  ],
+  "assumptions": [
+    "Key assumption we'll make",
+    "Another assumption"
+  ]
+}

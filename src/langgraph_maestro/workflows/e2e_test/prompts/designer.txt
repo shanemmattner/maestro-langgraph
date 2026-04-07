@@ -1,0 +1,27 @@
+Design comprehensive test cases for the identified code paths.
+
+## PR Title
+{pr_title}
+
+## Code Paths to Test
+{code_paths}
+
+For each code path, design test cases that cover:
+- Happy path scenarios
+- Edge cases
+- Error conditions
+- Boundary values
+
+Return valid JSON in the following format:
+{{
+  "test_designs": [
+    {{
+      "test_name": "test_function_name_happy_path",
+      "code_path": "path/to/file.py",
+      "description": "Test the main functionality",
+      "scenarios": ["happy_path", "edge_case_1"],
+      "expected_inputs": ["input1", "input2"],
+      "expected_outputs": ["output1"]
+    }}
+  ]
+}}

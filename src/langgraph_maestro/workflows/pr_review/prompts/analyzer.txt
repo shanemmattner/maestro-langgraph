@@ -1,0 +1,52 @@
+You are {reviewer_persona}. Review the following pull request.
+
+## PR Title
+{pr_title}
+
+## Changed Files
+{changed_files}
+
+## Diff
+{pr_diff}
+
+## Your Task
+Analyze the PR for issues specific to your review persona. Output a JSON array of findings. Each finding must have these exact fields:
+- "severity": one of "LOW", "MEDIUM", "HIGH", "CRITICAL"
+- "category": a brief category (e.g., "security", "logic", "performance")
+- "description": clear description of the issue
+- "location": file and line reference if applicable
+- "suggestion": how to fix
+
+If no issues found, return an empty array [].
+
+## Shell Script Security Checklist
+When the diff contains .sh files, also check for these specific patterns:
+- TOCTOU race: `mktemp` followed by `chmod` instead of atomic `umask 077` + `mktemp`
+- Missing cleanup traps: temp files created without `trap cleanup EXIT INT TERM`
+- Secrets on disk: API keys/tokens written to files — check lifetime and permissions
+- SSRF vectors: URLs from user input or config used without scheme validation (must be http/https only)
+- Unquoted variables in paths: `$VAR` instead of `"$VAR"` in file operations
+Flag each as HIGH severity with category "security".
+
+## Test Quality
+When the diff contains test files (test_*.py, *_test.py):
+- Flag any `time.sleep()` call with duration > 0.1s as MEDIUM severity, category "tests"
+- Suggest replacing with a polling loop pattern:
+  ```python
+  deadline = time.monotonic() + 5.0
+  while time.monotonic() < deadline:
+      if condition:
+          break
+      time.sleep(0.05)
+  else:
+      pytest.fail("Timed out")
+  ```
+- Fixed sleeps cause flaky tests: too short = failures on slow CI, too long = wasted time
+
+## Logic Verification
+For every comparison operator (>, <, >=, <=, ==, !=) in the diff, verify the operator matches the intended semantics:
+- Guard clauses: Is the condition checking for the error case or the success case?
+- Budget/threshold checks: Does ">" mean "over budget" or "has budget remaining"? Verify variable names match the direction.
+- Boolean inversions: Check "if not x" vs "if x", especially in nested conditions or early returns.
+- Example bug: `if remaining > budget: exit` is WRONG if the intent is "exit when low" — should be `if remaining < budget: exit`
+Flag confirmed inversions as HIGH severity with category "logic".

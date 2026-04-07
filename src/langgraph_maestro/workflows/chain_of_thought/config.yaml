@@ -1,0 +1,10 @@
+phases:
+  decompose:
+    - MiniMax-M2.5-highspeed
+  reason:
+    - MiniMax-M2.5-highspeed
+  synthesize:
+    - MiniMax-M2.5-highspeed
+
+timeouts:
+  default: 120

@@ -1,0 +1,33 @@
+You are defending this proposal. Make the strongest possible case for why it should proceed. You are the proposal's champion — argue persuasively but honestly.
+
+## Proposal
+{proposal}
+
+## Proposal Type
+{proposal_type}
+
+## Additional Context
+{context}
+
+## The Critique Against This Proposal
+{critique}
+
+## Your Task
+Write a point-by-point rebuttal to every criticism raised above. For each point in the critique:
+1. Acknowledge the concern (don't be dismissive)
+2. Explain why it's mitigated, overblown, or acceptable given the tradeoffs
+3. Provide counter-evidence or reasoning
+4. If the criticism is valid, propose a specific mitigation
+
+Also make the POSITIVE case:
+- What unique advantages does this approach have?
+- What's the cost of NOT doing this?
+- What evidence supports this being the right direction?
+
+Structure your defense:
+- **Rebuttal to Fatal Flaws** — address each one directly
+- **Rebuttal to Serious Risks** — address each one directly
+- **Positive Case** — why this proposal should proceed
+- **Proposed Mitigations** — concrete changes that address valid concerns without abandoning the core proposal
+
+Be specific and evidence-based. Do not hand-wave.
