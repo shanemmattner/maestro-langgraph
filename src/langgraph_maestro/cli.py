@@ -2,6 +2,7 @@
 
 Usage:
     maestro run <workflow> --task "..." [--config PATH] [--cwd PATH] [--json]
+    maestro init [--dir PATH] [--name NAME] [--model MODEL]
     maestro list
     maestro verify
     maestro mc "prompt" [--model MODEL] [--cwd PATH] [--timeout N]
@@ -191,6 +192,71 @@ def _cmd_verify(args: argparse.Namespace) -> int:
     return 0 if checks_failed == 0 else 1
 
 
+def _cmd_init(args: argparse.Namespace) -> int:
+    """Scaffold a new workflow from templates."""
+    from langgraph_maestro.templates import scaffold_workflow
+
+    target_dir = Path(args.dir).resolve()
+    name = args.name or target_dir.name.replace("-", "_")
+    model = args.model
+    description = args.description or ""
+
+    created = scaffold_workflow(
+        target_dir=target_dir,
+        workflow_name=name,
+        description=description,
+        default_model=model,
+    )
+
+    print(f"Scaffolded workflow '{name}' in {target_dir}/\n")
+    print("Created files:")
+    for p in created:
+        print(f"  {p.relative_to(target_dir)}")
+    print(f"\nNext steps:")
+    print(f"  1. Edit config.yaml to configure models and timeouts")
+    print(f"  2. Customize prompts/ for your domain")
+    print(f"  3. Copy into src/langgraph_maestro/workflows/{name}/ to register")
+
+    return 0
+
+
+def _cmd_customize(args: argparse.Namespace) -> int:
+    """Run the interactive customization workflow."""
+    from langgraph_maestro.workflows.customize.graph import run_workflow
+
+    target_dir = Path(args.dir).resolve()
+    model = args.model
+
+    print("Starting interactive workflow customization...")
+    print("Answer the questions to generate a workflow tailored to your needs.")
+    print("Type 'done' at any time to finish early.\n")
+
+    initial_state = {
+        "target_dir": str(target_dir),
+        "config_path": "",
+        "phase": "start",
+        "errors": [],
+        "interview_history": [],
+        "current_round": 0,
+        "gathered_context": {},
+        "confidence": 0.0,
+        "generated_files": {},
+        "validation_errors": [],
+        "validation_attempts": 0,
+    }
+
+    if args.workflow:
+        initial_state["source_workflow"] = str(Path(args.workflow).resolve())
+
+    result = run_workflow(initial_state, model=model)
+
+    summary = result.get("final_summary", "Workflow generated.")
+    output_dir = result.get("output_dir", str(target_dir))
+    print(f"\n{summary}")
+    print(f"Output: {output_dir}")
+    return 0
+
+
 def _cmd_mc(args: argparse.Namespace) -> int:
     """Run the mc (minimal claude) agent."""
     from langgraph_maestro.core.mc import build_cmd, run_claude, parse_usage
@@ -257,6 +323,21 @@ def main() -> None:
     # --- verify ---
     verify_parser = subparsers.add_parser("verify", help="Verify setup (dependencies, tracing, etc.)")
     verify_parser.set_defaults(func=_cmd_verify)
+
+    # --- init ---
+    init_parser = subparsers.add_parser("init", help="Scaffold a new workflow from templates")
+    init_parser.add_argument("--dir", "-d", default=".", help="Target directory (default: current directory)")
+    init_parser.add_argument("--name", "-n", default=None, help="Workflow name (default: directory basename)")
+    init_parser.add_argument("--model", "-m", default="claude-sonnet-4-6", help="Default model (default: claude-sonnet-4-6)")
+    init_parser.add_argument("--description", default="", help="One-line workflow description")
+    init_parser.set_defaults(func=_cmd_init)
+
+    # --- customize ---
+    customize_parser = subparsers.add_parser("customize", help="Interactively customize a workflow via LLM interview")
+    customize_parser.add_argument("--dir", "-d", default=".", help="Output directory for generated workflow")
+    customize_parser.add_argument("--workflow", "-w", default=None, help="Existing workflow directory to use as starting point")
+    customize_parser.add_argument("--model", "-m", default="claude-sonnet-4-6", help="Model for interview (default: claude-sonnet-4-6)")
+    customize_parser.set_defaults(func=_cmd_customize)
 
     # --- mc ---
     mc_parser = subparsers.add_parser("mc", help="Run the minimal Claude agent")

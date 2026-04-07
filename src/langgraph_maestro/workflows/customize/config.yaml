@@ -1,19 +1,21 @@
 workflow: customize
 
 description: |
-  Analyzes user requests and customizes an existing workflow
-  to better suit their needs by selecting the best-fit workflow
-  and generating customization specifications.
+  Multi-round interview-driven workflow customization.
+  Asks targeted questions, synthesizes answers into a domain profile,
+  generates a tailored LangGraph workflow, and validates the output.
 
 phases:
-  survey:
-    - minimax
-  match:
-    - MiniMax-M2.5-highspeed
-  spec:
-    - MiniMax-M2.5-highspeed
-  output:
-    - minimax
+  interview:
+    - claude-sonnet-4-6
+  collect:
+    - claude-sonnet-4-6
+  synthesize:
+    - claude-sonnet-4-6
+  generate:
+    - claude-sonnet-4-6
+  validate:
+    - claude-sonnet-4-6
 
 skills:
   model_overlays:

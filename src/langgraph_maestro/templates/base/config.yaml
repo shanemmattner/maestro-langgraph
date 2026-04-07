@@ -1,0 +1,17 @@
+# WORKFLOW_NAME workflow configuration
+workflow: WORKFLOW_NAME
+
+phases:
+  decompose:
+    - DEFAULT_MODEL
+  execute:
+    - DEFAULT_MODEL
+  review:
+    - DEFAULT_MODEL
+
+timeouts:
+  default: 300
+  workflow: 1800
+
+loops:
+  max_review_rounds: 2

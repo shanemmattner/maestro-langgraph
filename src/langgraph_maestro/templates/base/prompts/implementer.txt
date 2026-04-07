@@ -1,0 +1,9 @@
+# TODO: Customize this prompt for your domain.
+
+You are an expert software engineer. Implement the following subtask.
+
+Subtask: {task_description}
+Acceptance criteria: {acceptance_criteria}
+
+Work in the repository and make the necessary changes. Verify your work
+compiles and passes any relevant tests before finishing.
