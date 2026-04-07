@@ -1,0 +1,894 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "Langfuse-ClickHouse"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": "none",
+            "thresholdsStyle": "off"
+          },
+          "mappings": [],
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "legend": { "calcs": ["mean"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+          "editorType": "sql",
+          "rawSql": "SELECT\n  name,\n  quantile(0.5)(dateDiff('millisecond', start_time, end_time)) AS p50,\n  quantile(0.95)(dateDiff('millisecond', start_time, end_time)) AS p95\nFROM observations\nWHERE is_deleted = 0\n  AND end_time IS NOT NULL\n  AND name NOT LIKE 'gen_ai.fallback:%'\n  AND name LIKE 'gen_ai.%'\n  AND start_time >= now() - INTERVAL 24 HOUR\nGROUP BY name\nORDER BY p50 DESC",
+          "refId": "A",
+          "format": 1
+        }
+      ],
+      "title": "Node Latency p50/p95",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "Langfuse-ClickHouse"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "auto",
+            "spanNulls": true,
+            "stacking": "none",
+            "thresholdsStyle": "off"
+          },
+          "mappings": [],
+          "min": 1,
+          "max": 5,
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "id": 2,
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+          "editorType": "sql",
+          "rawSql": "SELECT\n  toStartOfMinute(timestamp) AS time,\n  avg(value) AS quality\nFROM scores\nWHERE is_deleted = 0\n  AND name = 'quality'\n  AND timestamp >= now() - INTERVAL 24 HOUR\nGROUP BY time\nORDER BY time",
+          "refId": "A",
+          "format": 1
+        }
+      ],
+      "title": "Quality Score Trend (Judge 1-5)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "Langfuse-ClickHouse"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": "normal",
+            "thresholdsStyle": "off"
+          },
+          "mappings": [],
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 3,
+      "options": {
+        "legend": { "calcs": ["sum"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+          "editorType": "sql",
+          "rawSql": "SELECT\n  name,\n  sum(usage_details['input']) AS input_tokens,\n  sum(usage_details['output']) AS output_tokens\nFROM observations\nWHERE is_deleted = 0\n  AND name NOT LIKE 'gen_ai.fallback:%'\n  AND name LIKE 'gen_ai.%'\n  AND start_time >= now() - INTERVAL 24 HOUR\nGROUP BY name\nORDER BY input_tokens + output_tokens DESC",
+          "refId": "A",
+          "format": 1
+        }
+      ],
+      "title": "Token Usage per Node (Input/Output)",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "Langfuse-ClickHouse"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false }
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 4,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "right", "showLegend": true, "values": ["value", "percent"] },
+        "pieType": "pie",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+          "editorType": "sql",
+          "rawSql": "SELECT\n  provided_model_name AS model,\n  count() AS calls\nFROM observations\nWHERE is_deleted = 0\n  AND provided_model_name IS NOT NULL\n  AND provided_model_name != ''\n  AND start_time >= now() - INTERVAL 24 HOUR\nGROUP BY model\nORDER BY calls DESC",
+          "refId": "A",
+          "format": 1
+        }
+      ],
+      "title": "Model Routing Split",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "Langfuse-ClickHouse"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": "none",
+            "thresholdsStyle": "off"
+          },
+          "mappings": [],
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "id": 5,
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+          "editorType": "sql",
+          "rawSql": "SELECT\n  toStartOfMinute(start_time) AS time,\n  quantile(0.5)(dateDiff('millisecond', start_time, end_time)) AS p50,\n  quantile(0.95)(dateDiff('millisecond', start_time, end_time)) AS p95,\n  quantile(0.99)(dateDiff('millisecond', start_time, end_time)) AS p99\nFROM observations\nWHERE is_deleted = 0\n  AND end_time IS NOT NULL\n  AND start_time >= now() - INTERVAL 24 HOUR\nGROUP BY time\nORDER BY time",
+          "refId": "A",
+          "format": 1
+        }
+      ],
+      "title": "Latency Distribution (p50/p95/p99)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "Langfuse-ClickHouse"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "red", "value": 10 }
+            ]
+          },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "id": 6,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+          "editorType": "sql",
+          "rawSql": "SELECT\n  count() AS total_traces,\n  countIf(name LIKE 'workflow:%') AS workflow_traces,\n  uniqExact(name) AS unique_workflows\nFROM traces\nWHERE timestamp >= now() - INTERVAL 24 HOUR",
+          "refId": "A",
+          "format": 1
+        }
+      ],
+      "title": "Trace Summary (24h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "Langfuse-ClickHouse"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": "normal",
+            "thresholdsStyle": "off"
+          },
+          "mappings": [],
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "id": 7,
+      "options": {
+        "legend": { "calcs": ["sum"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+          "editorType": "sql",
+          "rawSql": "SELECT\n  toStartOfHour(timestamp) AS time,\n  name,\n  count() AS runs\nFROM traces\nWHERE timestamp >= now() - INTERVAL 24 HOUR\n  AND name LIKE 'workflow:%'\nGROUP BY time, name\nORDER BY time",
+          "refId": "A",
+          "format": 1
+        }
+      ],
+      "title": "Workflow Runs Over Time",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "Langfuse-ClickHouse"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "auto",
+            "spanNulls": true,
+            "stacking": "none",
+            "thresholdsStyle": "off"
+          },
+          "mappings": [],
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 32 },
+      "id": 8,
+      "options": {
+        "legend": { "calcs": ["sum"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+          "editorType": "sql",
+          "rawSql": "SELECT\n  toStartOfHour(start_time) AS time,\n  sum(usage_details['input']) AS input_tokens,\n  sum(usage_details['output']) AS output_tokens,\n  sum(usage_details['input'] + usage_details['output']) AS total_tokens\nFROM observations\nWHERE is_deleted = 0\n  AND start_time >= now() - INTERVAL 24 HOUR\nGROUP BY time\nORDER BY time",
+          "refId": "A",
+          "format": 1
+        }
+      ],
+      "title": "Token Consumption Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "Langfuse-ClickHouse"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.10 },
+              { "color": "red", "value": 1.0 }
+            ]
+          },
+          "mappings": [],
+          "unit": "currencyUSD",
+          "decimals": 4
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 32 },
+      "id": 9,
+      "options": {
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+          "editorType": "sql",
+          "rawSql": "SELECT\n  sum(cost_details['total']) AS total_cost,\n  sum(cost_details['input']) AS input_cost,\n  sum(cost_details['output']) AS output_cost\nFROM observations\nWHERE is_deleted = 0\n  AND start_time >= now() - INTERVAL 24 HOUR",
+          "refId": "A",
+          "format": 1
+        }
+      ],
+      "title": "Estimated Cost (24h)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "red", "value": 15 }
+            ]
+          },
+          "mappings": [],
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 40 },
+      "id": 10,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+          "editorType": "sql",
+          "rawSql": "SELECT\n  countIf(end_time IS NULL) * 100.0 / greatest(count(), 1) AS error_rate\nFROM observations\nWHERE is_deleted = 0\n  AND start_time >= now() - INTERVAL 24 HOUR",
+          "refId": "A",
+          "format": 1
+        }
+      ],
+      "title": "Timeout Rate (24h)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "auto",
+            "spanNulls": true,
+            "stacking": "none",
+            "thresholdsStyle": "off"
+          },
+          "mappings": [],
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 40 },
+      "id": 11,
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+          "editorType": "sql",
+          "rawSql": "SELECT\n  toStartOfMinute(start_time) AS time,\n  avg(usage_details['first_token_ms']) AS avg_ttft\nFROM observations\nWHERE is_deleted = 0\n  AND usage_details['first_token_ms'] > 0\n  AND start_time >= now() - INTERVAL 24 HOUR\nGROUP BY time\nORDER BY time",
+          "refId": "A",
+          "format": 1
+        }
+      ],
+      "title": "Avg TTFT (Time to First Token)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": "none",
+            "thresholdsStyle": "off"
+          },
+          "mappings": [],
+          "unit": "currencyUSD",
+          "decimals": 4,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 48 },
+      "id": 12,
+      "options": {
+        "legend": { "calcs": ["sum"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+          "editorType": "sql",
+          "rawSql": "SELECT\n  t.name AS workflow,\n  sum(o.cost_details['total']) AS total_cost\nFROM observations o\nJOIN traces t ON o.trace_id = t.id\nWHERE o.is_deleted = 0\n  AND t.name LIKE 'workflow:%'\n  AND o.start_time >= now() - INTERVAL 24 HOUR\nGROUP BY workflow\nORDER BY total_cost DESC",
+          "refId": "A",
+          "format": 1
+        }
+      ],
+      "title": "Cost per Workflow",
+      "type": "barchart"
+    },
+    {
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "auto",
+            "spanNulls": true,
+            "stacking": "none",
+            "thresholdsStyle": "off"
+          },
+          "mappings": [],
+          "unit": "short",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 48 },
+      "id": 13,
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+          "editorType": "sql",
+          "rawSql": "SELECT\n  toStartOfHour(start_time) AS time,\n  sum(usage_details['output']) / greatest(sum(usage_details['input']), 1) AS output_input_ratio\nFROM observations\nWHERE is_deleted = 0\n  AND start_time >= now() - INTERVAL 24 HOUR\nGROUP BY time\nORDER BY time",
+          "refId": "A",
+          "format": 1
+        }
+      ],
+      "title": "Token Efficiency (Output/Input Ratio)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 300 },
+              { "color": "red", "value": 600 }
+            ]
+          },
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 56 },
+      "id": 14,
+      "options": {
+        "showHeader": true,
+        "sortBy": [{ "displayName": "duration_s", "desc": true }]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+          "editorType": "sql",
+          "rawSql": "SELECT\n  t.name AS trace_name,\n  t.id AS trace_id,\n  dateDiff('second', min(o.start_time), max(o.end_time)) AS duration_s,\n  count(o.id) AS observations\nFROM traces t\nJOIN observations o ON o.trace_id = t.id\nWHERE t.timestamp >= now() - INTERVAL 24 HOUR\n  AND o.is_deleted = 0\nGROUP BY t.name, t.id\nHAVING duration_s > 300\nORDER BY duration_s DESC\nLIMIT 20",
+          "refId": "A",
+          "format": 1
+        }
+      ],
+      "title": "Long-Running Traces (>5min)",
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false }
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 56 },
+      "id": 15,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "right", "showLegend": true, "values": ["value", "percent"] },
+        "pieType": "pie",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+          "editorType": "sql",
+          "rawSql": "SELECT\n  extractAllGroups(output, '\"verdict\"\\s*:\\s*\"([A-Z_]+)\"')[1][1] AS verdict,\n  count() AS cnt\nFROM observations\nWHERE is_deleted = 0\n  AND name = 'gen_ai.synthesize'\n  AND output LIKE '%verdict%'\n  AND start_time >= now() - INTERVAL 24 HOUR\nGROUP BY verdict\nORDER BY cnt DESC",
+          "refId": "A",
+          "format": 1
+        }
+      ],
+      "title": "PR Review Verdict Distribution",
+      "type": "piechart"
+    },
+    {
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "red", "value": 80 }
+            ]
+          },
+          "mappings": [],
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 64 },
+      "id": 16,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+          "editorType": "sql",
+          "rawSql": "SELECT\n  countIf(has_escalation = 1) * 100.0 / greatest(count(), 1) AS escalation_rate\nFROM (\n  SELECT\n    trace_id,\n    max(if(name IN ('gen_ai.escalation', 'gen_ai.escalated_review', 'gen_ai.fallback:escalation'), 1, 0)) AS has_escalation\n  FROM observations\n  WHERE is_deleted = 0\n    AND start_time >= now() - INTERVAL 24 HOUR\n  GROUP BY trace_id\n)",
+          "refId": "A",
+          "format": 1
+        }
+      ],
+      "title": "Escalation Rate (24h)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "auto",
+            "spanNulls": true,
+            "stacking": "none",
+            "thresholdsStyle": "off"
+          },
+          "mappings": [],
+          "unit": "currencyUSD",
+          "decimals": 4,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 64 },
+      "id": 17,
+      "options": {
+        "legend": { "calcs": ["mean", "sum"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+          "editorType": "sql",
+          "rawSql": "SELECT\n  toStartOfHour(min(o.start_time)) AS time,\n  sum(o.cost_details['total']) AS cost_per_run\nFROM observations o\nWHERE o.is_deleted = 0\n  AND o.start_time >= now() - INTERVAL 24 HOUR\nGROUP BY o.trace_id\nHAVING cost_per_run > 0\nORDER BY time",
+          "refId": "A",
+          "format": 1
+        }
+      ],
+      "title": "Cost per Run",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": "normal",
+            "thresholdsStyle": "off"
+          },
+          "mappings": [],
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 72 },
+      "id": 18,
+      "options": {
+        "legend": { "calcs": ["sum"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "Langfuse-ClickHouse" },
+          "editorType": "sql",
+          "rawSql": "SELECT\n  toStartOfDay(start_time) AS time,\n  provided_model_name AS model,\n  sum(usage_details['input']) AS input_tokens,\n  sum(usage_details['output']) AS output_tokens\nFROM observations\nWHERE is_deleted = 0\n  AND provided_model_name IS NOT NULL\n  AND provided_model_name != ''\n  AND start_time >= now() - INTERVAL 7 DAY\nGROUP BY time, model\nORDER BY time",
+          "refId": "A",
+          "format": 1
+        }
+      ],
+      "title": "Daily Token Usage by Model (7d)",
+      "type": "barchart"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["llm", "langgraph", "maestro", "observability"],
+  "templating": { "list": [] },
+  "time": { "from": "now-24h", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Maestro Pipeline Observability",
+  "uid": "llm-pipeline-01",
+  "version": 4,
+  "weekStart": ""
+}

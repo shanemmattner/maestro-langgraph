@@ -1,0 +1,29 @@
+apiVersion: 1
+
+datasources:
+  # PostgreSQL - for Langfuse metadata (users, projects, API keys, prompts, scores)
+  - name: Langfuse-Postgres
+    uid: Langfuse-Postgres
+    type: postgres
+    url: postgres:5432
+    database: langfuse
+    user: langfuse
+    secureJsonData:
+      password: langfuse
+    jsonData:
+      sslmode: disable
+      postgresVersion: 1600
+    isDefault: false
+
+  # ClickHouse - for Langfuse traces and observations (v3 stores detailed traces here)
+  - name: Langfuse-ClickHouse
+    uid: Langfuse-ClickHouse
+    type: grafana-clickhouse-datasource
+    jsonData:
+      server: clickhouse
+      port: 8123
+      protocol: http
+      defaultDatabase: default
+      username: clickhouse
+    secureJsonData:
+      password: clickhouse

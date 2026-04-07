@@ -1,0 +1,21 @@
+apiVersion: 1
+
+# Discord webhook: set GRAFANA_DISCORD_WEBHOOK_URL in Grafana's env,
+# then uncomment the discord receiver below and set isDefault: true.
+
+contactPoints:
+  - orgId: 1
+    name: "Default"
+    receivers:
+      - uid: "default-email"
+        type: "email"
+        isDefault: true
+        settings:
+          addresses: "admin@local.dev"
+      # Uncomment when GRAFANA_DISCORD_WEBHOOK_URL is set:
+      # - uid: "discord-webhook"
+      #   type: "discord"
+      #   isDefault: true
+      #   settings:
+      #     url: "$__env{GRAFANA_DISCORD_WEBHOOK_URL}"
+      #     use_discord_username: true

@@ -1,0 +1,251 @@
+# Grafana Alerting Rules
+apiVersion: 1
+
+groups:
+  - name: "Langfuse Observability"
+    folder: "Langfuse"
+    interval: "1m"
+    rules:
+      - uid: "high-latency"
+        title: "High Latency"
+        condition: "A"
+        data:
+          - refId: "A"
+            queryType: ""
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: "Langfuse-ClickHouse"
+            model:
+              rawSQL: |
+                SELECT quantile(0.95)(dateDiff('millisecond', start_time, end_time)) as p95_latency
+                FROM observations
+                WHERE is_deleted = 0
+                  AND end_time IS NOT NULL
+                  AND start_time >= now() - INTERVAL 5 MINUTE
+              refId: "A"
+              datasource:
+                type: "grafana-clickhouse-datasource"
+                uid: "Langfuse-ClickHouse"
+          - refId: "B"
+            queryType: ""
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 10000
+                    type: "gt"
+                  operator:
+                    type: "and"
+                  reducer:
+                    type: "last"
+              evaluator:
+                params:
+                  - 10000
+                type: "gt"
+              operator:
+                type: "default"
+              reducer:
+                type: "last"
+              type: "query"
+              refId: "B"
+        noDataState: "OK"
+        execErrState: "Alerting"
+        for: "5m"
+        annotations:
+          description: "P95 latency is above 10000ms over the last 5 minutes"
+          summary: "High latency detected on Langfuse observations"
+        labels:
+          severity: "warning"
+
+      - uid: "high-error-rate"
+        title: "High Error Rate"
+        condition: "A"
+        data:
+          - refId: "A"
+            queryType: ""
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "Langfuse-ClickHouse"
+            model:
+              rawSQL: |
+                SELECT count() as error_count
+                FROM observations
+                WHERE is_deleted = 0
+                  AND level = 'ERROR'
+                  AND start_time >= now() - INTERVAL 10 MINUTE
+              refId: "A"
+              datasource:
+                type: "grafana-clickhouse-datasource"
+                uid: "Langfuse-ClickHouse"
+          - refId: "B"
+            queryType: ""
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 5
+                    type: "gt"
+                  operator:
+                    type: "and"
+                  reducer:
+                    type: "last"
+              evaluator:
+                params:
+                  - 5
+                type: "gt"
+              operator:
+                type: "default"
+              reducer:
+                type: "last"
+              type: "query"
+              refId: "B"
+        noDataState: "OK"
+        execErrState: "Alerting"
+        for: "5m"
+        annotations:
+          description: "Error count is above 5 in the last 10 minutes"
+          summary: "High error rate detected on Langfuse observations"
+        labels:
+          severity: "critical"
+
+      - uid: "token-usage-spike"
+        title: "Token Usage Spike"
+        condition: "A"
+        data:
+          - refId: "A"
+            queryType: ""
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: "Langfuse-ClickHouse"
+            model:
+              rawSQL: |
+                SELECT sum(usage_details['total']) as last_1h_tokens
+                FROM observations
+                WHERE is_deleted = 0
+                  AND start_time >= now() - INTERVAL 1 HOUR
+              refId: "A"
+              datasource:
+                type: "grafana-clickhouse-datasource"
+                uid: "Langfuse-ClickHouse"
+          - refId: "B"
+            queryType: ""
+            relativeTimeRange:
+              from: 90000
+              to: 3600
+            datasourceUid: "Langfuse-ClickHouse"
+            model:
+              rawSQL: |
+                SELECT avg(hourly_tokens) as avg_hourly_tokens
+                FROM (
+                  SELECT date_trunc('hour', start_time) as hour, sum(usage_details['total']) as hourly_tokens
+                  FROM observations
+                  WHERE is_deleted = 0
+                    AND start_time >= now() - INTERVAL 24 HOUR
+                  GROUP BY date_trunc('hour', start_time)
+                )
+              refId: "B"
+              datasource:
+                type: "grafana-clickhouse-datasource"
+                uid: "Langfuse-ClickHouse"
+          - refId: "C"
+            queryType: ""
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 2
+                    type: "gt"
+                  operator:
+                    type: "and"
+                  reducer:
+                    type: "last"
+              expression: "A / B"
+              reducer:
+                type: "last"
+              type: "math"
+              refId: "C"
+        noDataState: "OK"
+        execErrState: "Alerting"
+        for: "10m"
+        annotations:
+          description: "Token usage in the last hour is more than 2x the average hourly tokens in the last 24 hours"
+          summary: "Token usage spike detected"
+        labels:
+          severity: "warning"
+
+      - uid: "high-escalation-rate"
+        title: "High Escalation Rate"
+        condition: "B"
+        data:
+          - refId: "A"
+            queryType: ""
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: "Langfuse-ClickHouse"
+            model:
+              rawSQL: |
+                SELECT
+                  countIf(has_escalation = 1) * 100.0 / greatest(count(), 1) AS escalation_pct
+                FROM (
+                  SELECT
+                    trace_id,
+                    max(if(name IN ('gen_ai.escalation', 'gen_ai.escalated_review', 'gen_ai.fallback:escalation'), 1, 0)) AS has_escalation
+                  FROM observations
+                  WHERE is_deleted = 0
+                    AND start_time >= now() - INTERVAL 1 HOUR
+                  GROUP BY trace_id
+                )
+              refId: "A"
+              datasource:
+                type: "grafana-clickhouse-datasource"
+                uid: "Langfuse-ClickHouse"
+          - refId: "B"
+            queryType: ""
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 80
+                    type: "gt"
+                  operator:
+                    type: "and"
+                  reducer:
+                    type: "last"
+              evaluator:
+                params:
+                  - 80
+                type: "gt"
+              operator:
+                type: "default"
+              reducer:
+                type: "last"
+              type: "query"
+              refId: "B"
+        noDataState: "OK"
+        execErrState: "Alerting"
+        for: "10m"
+        annotations:
+          description: "More than 80% of PR reviews triggered escalation in the last hour"
+          summary: "High escalation rate — most reviews are being escalated"
+        labels:
+          severity: "warning"
