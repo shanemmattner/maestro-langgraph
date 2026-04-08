@@ -33,8 +33,8 @@ uv run maestro run issue_to_pr --task "Implement feature #42" --cwd ./my-repo
 ### Environment variables
 
 ```bash
-ANTHROPIC_API_KEY=sk-...          # Required for Claude-based providers
-MINIMAX_API_KEY=...               # Required for MiniMax models
+ANTHROPIC_API_KEY=sk-...          # Required for Claude API (or use Claude Code CLI subscription)
+MINIMAX_API_KEY=...               # Optional — only for MiniMax models
 MAESTRO_TRACE_CONTENT=true        # Include prompt/response in OTel spans (default: true)
 LANGFUSE_PUBLIC_KEY=...           # Langfuse project key (optional)
 LANGFUSE_SECRET_KEY=...           # Langfuse secret key (optional)
@@ -78,19 +78,19 @@ workflow: default
 
 phases:
   decompose:
-    - MiniMax-M2.5-highspeed
+    - claude-sonnet-4-6          # Primary model (fallback chain — tries in order)
   execute:
-    - MiniMax-M2.5-highspeed
+    - claude-sonnet-4-6
   review:
-    - MiniMax-M2.5-highspeed
+    - claude-sonnet-4-6
   critique:
-    enabled: false
+    enabled: false               # Enable for adversarial review
     models:
-      - MiniMax-M2.5-highspeed
+      - claude-sonnet-4-6
   test_gen:
-    enabled: false
+    enabled: false               # Enable for TDD (generate tests before execute)
     models:
-      - MiniMax-M2.5-highspeed
+      - claude-sonnet-4-6
   verify:
     enabled: true
 
