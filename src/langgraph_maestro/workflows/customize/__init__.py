@@ -16,6 +16,16 @@ from .schemas import (
 )
 from .state import CustomizeState
 
+from langgraph_maestro.core.registry import register_workflow
+from langgraph_maestro.core.config import workflow_config_path
+
+register_workflow(
+    "customize",
+    build_graph,
+    default_config=workflow_config_path(__file__),
+    description="Multi-round LLM interview to generate a custom workflow.",
+)
+
 __all__ = [
     "CustomizeState",
     "AnswerSynthesis",

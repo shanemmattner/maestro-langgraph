@@ -11,8 +11,7 @@
 #
 # Usage:
 #   cp .env.example .env && edit .env
-#   docker compose up -d                          # infra only
-#   docker compose --profile maestro up -d        # infra + maestro service
+#   docker compose up -d
 
 services:
   # ============================================
@@ -70,8 +69,8 @@ services:
       - "3100:3000"
     environment:
       <<: *langfuse-env
-      LANGFUSE_INIT_ORG_ID: pa-pipelines
-      LANGFUSE_INIT_ORG_NAME: "Personal Assistant Pipelines"
+      LANGFUSE_INIT_ORG_ID: maestro
+      LANGFUSE_INIT_ORG_NAME: "Maestro"
       LANGFUSE_INIT_PROJECT_ID: maestro-pipeline
       LANGFUSE_INIT_PROJECT_NAME: "Maestro Pipeline"
       LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_INIT_PUBLIC_KEY:-pk-lf-maestro-prod}
@@ -223,29 +222,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  # ============================================
-  # MAESTRO (profile-gated)
-  # ============================================
-  maestro:
-    build:
-      context: ..
-      dockerfile: Dockerfile
-    environment:
-      LANGFUSE_BASE_URL: http://langfuse-web:3000
-      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_INIT_PUBLIC_KEY:-pk-lf-maestro-prod}
-      LANGFUSE_SECRET_KEY: ${LANGFUSE_INIT_SECRET_KEY:-sk-lf-maestro-prod}
-      TRACING_BACKEND: ${TRACING_BACKEND:-langfuse}
-      MINIMAX_API_KEY: ${MINIMAX_API_KEY:-}
-      MLX_HOST: host.docker.internal
-      MAESTRO_TRACE_CONTENT: "true"
-    depends_on:
-      langfuse-web:
-        condition: service_healthy
-    profiles:
-      - maestro
-    networks:
-      - langfuse-net
 
 networks:
   langfuse-net:

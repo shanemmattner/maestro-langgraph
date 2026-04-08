@@ -115,16 +115,20 @@ Use `get_models_for_phase()` and `get_stall_config()` from `langgraph_maestro.co
 ### Programmatic usage
 
 ```python
-from langgraph_maestro.core.mc import run_mc_agent
+from pathlib import Path
+from langgraph_maestro.core.mc import build_cmd, run_claude, parse_usage
+
+# Build the CLI command
+cmd, prompt_text = build_cmd(
+    "Fix the type error in auth.py",
+    model="claude-sonnet-4-6",
+)
 
 # Run Claude Code as a sub-agent
-exit_code = run_mc_agent(
-    prompt="Fix the type error in auth.py",
-    model="claude-sonnet-4-6",
-    cwd="/path/to/repo",
-    timeout=300,
-    output_path="/tmp/result.txt",
+final, elapsed, returncode = run_claude(
+    cmd, cwd=Path("/path/to/repo"), timeout=300, prompt_stdin=prompt_text,
 )
+usage = parse_usage(final)
 ```
 
 It also supports routing to local MLX models via RAC when the model name starts with `mlx-community/` or is set to `"local"`.

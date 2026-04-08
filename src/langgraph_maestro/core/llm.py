@@ -255,17 +255,11 @@ def _strip_reasoning_tags(text: str) -> str:
 
 
 def _load_minimax_api_key() -> str:
-    """Load MINIMAX_API_KEY from env or ~/.config/assistant/.env fallback."""
+    """Load MINIMAX_API_KEY from environment."""
     key = os.environ.get("MINIMAX_API_KEY")
     if key:
         return key
-    env_file = Path.home() / ".config" / "assistant" / ".env"
-    if env_file.exists():
-        for line in env_file.read_text().splitlines():
-            line = line.strip()
-            if line.startswith("MINIMAX_API_KEY="):
-                return line.split("=", 1)[1].strip().strip("'\"")
-    raise RuntimeError("MINIMAX_API_KEY not set (checked env and ~/.config/assistant/.env)")
+    raise RuntimeError("MINIMAX_API_KEY not set in environment")
 
 
 def _call_default_minimax(

@@ -123,13 +123,13 @@ def test_review_routes_to_end_on_accept():
 
 ## Mocking MC Agent Calls
 
-For nodes that use `run_mc_agent()`:
+For nodes that use `run_claude()`:
 
 ```python
 from unittest.mock import patch
 
 def test_execute_with_mc(mock_llm, tmp_config):
-    with patch("langgraph_maestro.core.mc.run_mc_agent", return_value=0):
+    with patch("langgraph_maestro.core.mc.run_claude", return_value=({}, 1.0, 0)):
         node = make_execute_node(config_path, prompts_dir)
         result = node({"task": "fix bug", "cwd": "/tmp", "config_path": config_path})
 ```

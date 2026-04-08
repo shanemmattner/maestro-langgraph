@@ -4,7 +4,6 @@ Workflow name: $ARGUMENTS
 
 1. Run the scaffold command:
    ```
-   cd /Users/shanemattner/Desktop/tuned_voice_repos/langgraph-maestro-oss
    uv run maestro init --dir "src/langgraph_maestro/workflows/$ARGUMENTS" --name "$ARGUMENTS"
    ```
 

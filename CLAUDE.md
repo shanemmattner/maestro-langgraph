@@ -76,7 +76,7 @@ from langgraph_maestro.core.config import load_config, workflow_config_path, get
 from langgraph_maestro.core.llm import call_llm, call_llm_with_fallback
 from langgraph_maestro.core.structured import call_llm_structured
 from langgraph_maestro.core.stall import StallDetector
-from langgraph_maestro.core.mc import run_mc_agent
+from langgraph_maestro.core.mc import build_cmd, run_claude, parse_usage
 from langgraph_maestro.core.registry import register_workflow
 
 # Lazy-loaded from core __init__.py (these use __getattr__ lazy loading)
@@ -102,7 +102,7 @@ from langgraph_maestro.core.config import load_config, workflow_config_path
 config = load_config(workflow_config_path(__file__))
 ```
 
-Each workflow directory has its own `config.yaml` with phase models, loop limits, and feature flags. Use `get_models_for_phase(config, "execute")` and `get_stall_config(config)` to read values programmatically.
+Each workflow directory has its own `config.yaml` with phase models, loop limits, and feature flags. Use `get_models_for_phase("execute", config)` and `get_stall_config(config)` to read values programmatically.
 
 ## Adding a new workflow
 
@@ -199,7 +199,7 @@ def make_my_node(
     def my_node(state: dict) -> dict:
         config_path = state.get("config_path", config_path_default)
         config = load_config(config_path)
-        models = get_models_for_phase(config, "my_phase")
+        models = get_models_for_phase("my_phase", config)
 
         result = call_llm_structured(
             prompt=state["task"],
@@ -252,7 +252,7 @@ Built-in providers: `claude_code` (default), `minimax`, `local` (MLX via RAC), `
 
 **`call_llm_structured(prompt, models, response_model, ...)`** -- Calls `call_llm_with_fallback`, parses JSON from response, validates against a Pydantic model. On validation failure, re-injects the error and retries (Instructor-style).
 
-**`mc.py: build_cmd() / run_claude()`** -- Wraps Claude Code as a programmable agent API. `build_cmd()` assembles the CLI command with MCP tool server (~900 tokens vs ~5,800 for built-in tools). `run_claude()` executes it, streams NDJSON output, and returns `(final_message, elapsed, returncode)`. Use `run_mc_agent()` as the high-level entry point.
+**`mc.py: build_cmd() / run_claude()`** -- Wraps Claude Code as a programmable agent API. `build_cmd()` assembles the CLI command with MCP tool server (~900 tokens vs ~5,800 for built-in tools). `run_claude()` executes it, streams NDJSON output, and returns `(final_message, elapsed, returncode)`. `parse_usage()` extracts token counts and cost from the result.
 
 **`workflow_config_path(__file__)`** -- Resolves `config.yaml` relative to the calling module. Every workflow uses this pattern.
 

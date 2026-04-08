@@ -4,7 +4,6 @@ Arguments: $ARGUMENTS
 
 1. If no arguments given, run the full suite:
    ```
-   cd /Users/shanemattner/Desktop/tuned_voice_repos/langgraph-maestro-oss
    uv run pytest tests/ -v --tb=short
    ```
 

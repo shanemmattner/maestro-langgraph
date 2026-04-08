@@ -9,7 +9,6 @@ Parse the first word as the workflow name and the rest as the task description.
 
 2. Run the workflow:
    ```
-   cd /Users/shanemattner/Desktop/tuned_voice_repos/langgraph-maestro-oss
    uv run maestro run <workflow_name> --task "<task_description>" --cwd . --json
    ```
 

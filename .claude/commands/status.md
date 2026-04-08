@@ -4,7 +4,6 @@ Run these checks and report a summary:
 
 1. Git status:
    ```
-   cd /Users/shanemattner/Desktop/tuned_voice_repos/langgraph-maestro-oss
    git status --short
    git log --oneline -5
    ```
