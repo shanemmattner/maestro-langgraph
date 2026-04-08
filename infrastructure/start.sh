@@ -10,16 +10,25 @@ if [ -f .env ]; then
     set -a; source .env; set +a
 fi
 
-# Check Colima
-if ! /opt/homebrew/bin/colima status 2>/dev/null | grep -q "Running"; then
-    echo "Starting Colima..."
-    /opt/homebrew/bin/colima start
-fi
-
-# Check Docker daemon
+# Ensure Docker daemon is running
 if ! docker info &>/dev/null; then
-    echo "ERROR: Docker daemon not reachable after Colima start."
-    exit 1
+    # Try Colima first, then Docker Desktop
+    if command -v colima &>/dev/null; then
+        if ! colima status 2>/dev/null | grep -q "Running"; then
+            echo "Starting Colima..."
+            colima start
+        fi
+    elif [ -d "/Applications/Docker.app" ]; then
+        echo "Starting Docker Desktop..."
+        open -a Docker
+        sleep 10
+    fi
+
+    if ! docker info &>/dev/null; then
+        echo "ERROR: Docker daemon not reachable."
+        echo "Run './infrastructure/setup.sh' to install Docker, or start it manually."
+        exit 1
+    fi
 fi
 
 # Idempotency — skip if Langfuse already healthy
@@ -27,6 +36,16 @@ LANGFUSE_PORT="${LANGFUSE_PORT:-3100}"
 if curl -sf "http://localhost:${LANGFUSE_PORT}/api/public/health" &>/dev/null; then
     echo "Langfuse already running."
     exit 0
+fi
+
+# Determine compose command
+if docker compose version &>/dev/null; then
+    COMPOSE="docker compose"
+elif command -v docker-compose &>/dev/null; then
+    COMPOSE="docker-compose"
+else
+    echo "ERROR: Neither 'docker compose' nor 'docker-compose' found."
+    exit 1
 fi
 
 # Check port conflicts
@@ -37,7 +56,7 @@ for port in 3100 3200 5432 8123 9000 9090 9091; do
 done
 
 echo "Starting infrastructure..."
-docker compose up -d
+$COMPOSE up -d
 
 # Wait for Langfuse (up to 120s — ClickHouse can be slow on cold start)
 echo -n "Waiting for Langfuse..."
