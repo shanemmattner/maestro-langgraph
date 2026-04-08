@@ -164,7 +164,7 @@ def web_scrape(url: str, *, max_length: int = MAX_CONTENT_LENGTH) -> ScrapedPage
         ScrapedPage with markdown content.
     """
     payload = {
-        "urls": url,
+        "urls": [url],
         "priority": 8,
         "word_count_threshold": 50,
     }
@@ -180,12 +180,21 @@ def web_scrape(url: str, *, max_length: int = MAX_CONTENT_LENGTH) -> ScrapedPage
         logger.error("web_scrape: failed for %s — %s", url, e)
         return ScrapedPage(url=url, title="", content="", error=str(e))
 
-    # Crawl4AI returns result in various formats depending on version
-    result = data.get("result", data)
+    # Crawl4AI v0.8+ returns: {"results": [{"markdown": {"raw_markdown": "..."}, "metadata": {...}}]}
+    results_list = data.get("results", [])
+    result = results_list[0] if results_list else data.get("result", data)
     if isinstance(result, list):
         result = result[0] if result else {}
 
-    content = result.get("markdown", "") or result.get("cleaned_html", "") or ""
+    # markdown can be a string or a dict with raw_markdown
+    md = result.get("markdown", "")
+    if isinstance(md, dict):
+        content = md.get("raw_markdown", "") or md.get("markdown_with_citations", "")
+    else:
+        content = md or ""
+    if not content:
+        content = result.get("cleaned_html", "") or ""
+
     title = result.get("metadata", {}).get("title", "") if isinstance(result.get("metadata"), dict) else ""
 
     truncated = len(content) > max_length

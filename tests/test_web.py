@@ -136,6 +136,20 @@ class TestWebScrape:
             page = web_scrape("https://example.com")
             assert page.content == "Content"
 
+    def test_handles_crawl4ai_v08_nested_markdown(self):
+        """Crawl4AI v0.8+ returns markdown as dict with raw_markdown key."""
+        response = {
+            "results": [{
+                "markdown": {"raw_markdown": "# Real Content\nFrom nested format."},
+                "metadata": {"title": "Nested Page"},
+            }]
+        }
+        with patch("langgraph_maestro.core.web.urllib.request.urlopen",
+                   return_value=self._mock_response(response)):
+            page = web_scrape("https://example.com")
+            assert "Real Content" in page.content
+            assert page.title == "Nested Page"
+
 
 # ── search_and_extract ─────────────────────────────────────────────
 
