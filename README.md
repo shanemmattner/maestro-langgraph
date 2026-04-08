@@ -2,16 +2,46 @@
 
 Multi-agent LLM workflow orchestration framework built on [LangGraph](https://github.com/langchain-ai/langgraph).
 
-## Philosophy
+## Principles
 
-**LLM workflows fail when agents run blind.** The core principle of this framework is: every task must have a measurable definition of success before work begins.
+### 1. Quality Over Everything
+If you can't trust the output, it's worthless -- you need human effort to verify it anyway, which defeats the purpose. Every design decision prioritizes correctness over speed. A slow, verified result beats a fast, wrong one. If a workflow can't prove it succeeded, it hasn't.
 
-The ideal flow:
-1. **User provides ground truth** -- a reference file, expected output, test case, or success criteria alongside the task. The LLM works against it autonomously.
-2. **LLM generates its own** -- if no ground truth is provided, the agent writes a test first, defines acceptance criteria, or creates a reference to compare against.
-3. **LLM stops and asks** -- if the agent can't determine what success looks like, it pauses and requests clarification rather than producing unverifiable output.
+### 2. Never Guess -- Always Look Up
+LLMs must never rely on training data for verifiable facts. If there's documentation, read it. If there's an API spec, fetch it. If there's a web page with the answer, search and scrape it. The self-hosted SearXNG + Crawl4AI stack exists for exactly this -- every agent can search the web and verify claims at zero cost. Memory is for reasoning, not for facts.
 
-**Quality over speed, always.** Every LLM call is traced, every decision is logged, every iteration is visible in Langfuse. If a workflow can't prove it succeeded, it hasn't.
+### 3. One Agent, One Prompt, One Task
+Each agent gets a single, focused job. No sprawling mega-prompts that plan, execute, review, and fix in one shot. LangGraph's value is decomposition: each node does one thing well, the graph handles orchestration. If a node is doing two things, split it into two nodes.
+
+### 4. Closed-Loop Feedback
+Every action needs observable, measurable feedback. No single-shot "here's my answer" workflows.
+
+- **Ground truth / reference files**: The agent needs something to compare against. A KiCad schematic, a UART byte stream, expected test output, an acceptance criteria doc -- whatever "correct" looks like for this task.
+  - *Ideal*: User provides ground truth alongside the task
+  - *Acceptable*: Agent generates its own test/criteria first (TDD style)
+  - *Last resort*: Agent stops and asks the human rather than producing unverifiable output
+- **Logs are the agent's eyes**: Every LLM call, tool invocation, decision point, and iteration delta gets logged. If the agent can't see it in the logs, it can't learn from it. Logging is not an afterthought -- it's the primary feedback mechanism.
+- **Tests as verification**: Not "I think this works" -- run it, measure it, compare the output to the reference. Real execution, real results.
+
+**The user has a role here too.** They may need to provide reference files, install testing tools, or define what "real success" looks like. Workflows should be explicit about what they need from the user to close the loop.
+
+### 5. Iterative, Not Waterfall
+Work like a real engineer: look at the whole problem, research what you don't know, solve one small piece, verify it, step back, reassess, repeat.
+
+Each iteration:
+1. Assess the full problem (not just the current subtask)
+2. Research what you need (docs, web, existing code)
+3. Solve one small, testable piece
+4. Verify it against the ground truth
+5. Step back, look at the whole picture again, repeat
+
+**Early stopping**: If no measurable progress after 1-2 iterations, stop. Don't keep grinding -- either escalate to a human, try a completely different approach, or declare the task blocked. Same principle as ML training: if the loss plateaus, more epochs won't help.
+
+### 6. Adversarial Review -- Always
+Every output gets challenged by a different agent whose job is to find what's wrong, what's hallucinated, what's bullshit. This isn't an optional "nice to have" review phase. It's built into the loop. The agent that wrote the code never approves it.
+
+### 7. Real-World E2E Testing
+Ask: "What would a real human user do to test this?" Then automate that. Not mocked unit tests on fake data -- real inputs through the real system producing real outputs. When you can't fully automate it, be explicit about what the user needs to help set up.
 
 ## Features
 

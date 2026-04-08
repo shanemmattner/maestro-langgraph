@@ -2,6 +2,30 @@
 
 Multi-agent LLM workflow orchestration framework built on LangGraph. Provides a provider-routed `call_llm()` interface, config-driven workflow graphs, structured output with auto-retry, stall/budget detection, and OTel tracing. Ships with 9 built-in workflows (chain-of-thought, issue-to-PR, PR review, etc.) and a CLI (`maestro`) for running them.
 
+## Core Principles
+
+These principles govern every workflow, every agent, and every design decision in this framework. They are non-negotiable.
+
+1. **Quality Over Everything** -- If the output can't be trusted, it's worthless. Correctness over speed, always. A workflow that can't prove it succeeded hasn't.
+
+2. **Never Guess -- Always Look Up** -- Never rely on LLM training data for verifiable facts. Search the web (`web_search()`), read docs (`web_scrape()`), check the actual source. Memory is for reasoning, not facts.
+
+3. **One Agent, One Prompt, One Task** -- Each node does one focused job. If it's doing two things, split it. The graph handles orchestration.
+
+4. **Closed-Loop Feedback** -- Every action needs measurable feedback:
+   - Ground truth / reference files to compare against (user-provided ideal, LLM-generated acceptable, stop-and-ask last resort)
+   - Logs as the primary feedback mechanism -- if the agent can't see it, it can't learn from it
+   - Tests that run against real systems and produce measurable results
+   - The user may need to help set up testing infrastructure
+
+5. **Iterative, Not Waterfall** -- Assess the whole problem → research → solve one small piece → verify → step back → reassess → repeat. Early stopping: no progress after 1-2 iterations = stop and escalate. Same as ML training -- if loss plateaus, more epochs won't help.
+
+6. **Adversarial Review -- Always** -- Every output gets challenged by a different agent. The agent that wrote the code never approves it. Find what's wrong, what's hallucinated, what's bullshit.
+
+7. **Real-World E2E Testing** -- "What would a real human do to test this?" Automate that. Not mocked unit tests -- real inputs, real systems, real outputs.
+
+When building or modifying workflows, ask: Does this design honor all 7 principles? If not, fix it before proceeding.
+
 ## Quick reference
 
 ```bash
