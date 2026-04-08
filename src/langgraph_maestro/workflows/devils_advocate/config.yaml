@@ -2,9 +2,9 @@ workflow: devils_advocate
 
 phases:
   research_counter_evidence:
-    - MiniMax-M2.5-highspeed
+    - claude-sonnet-4-6
   find_alternatives:
-    - MiniMax-M2.5-highspeed
+    - claude-sonnet-4-6
   build_critique:
     - claude-opus-4-6-20250501     # MUST be opus for strong critique
   defend_proposal:
@@ -12,7 +12,7 @@ phases:
   judge_verdict:
     - claude-opus-4-6-20250501     # opus for impartial judgment
   write_report:
-    - MiniMax-M2.5-highspeed
+    - claude-sonnet-4-6
 
 skills:
   model_overlays:

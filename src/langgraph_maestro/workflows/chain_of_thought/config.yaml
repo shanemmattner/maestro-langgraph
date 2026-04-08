@@ -1,10 +1,10 @@
 phases:
   decompose:
-    - MiniMax-M2.5-highspeed
+    - claude-sonnet-4-6
   reason:
-    - MiniMax-M2.5-highspeed
+    - claude-sonnet-4-6
   synthesize:
-    - MiniMax-M2.5-highspeed
+    - claude-sonnet-4-6
 
 timeouts:
   default: 120

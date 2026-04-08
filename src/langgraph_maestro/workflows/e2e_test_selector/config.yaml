@@ -17,7 +17,7 @@ skills:
 
 prompt_engineering:
   enabled: true
-  model: minimax:MiniMax-M2.5
+  model: minimax:claude-sonnet-4-6
   phases: [decompose, execute, review]
   timeout: 120
   fallback_to_raw: true

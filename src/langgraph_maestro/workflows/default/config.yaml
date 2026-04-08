@@ -2,19 +2,19 @@ workflow: default
 
 phases:
   decompose:
-    - MiniMax-M2.5-highspeed
+    - claude-sonnet-4-6
   execute:
-    - MiniMax-M2.5-highspeed
+    - claude-sonnet-4-6
   review:
-    - MiniMax-M2.5-highspeed
+    - claude-sonnet-4-6
   critique:
     enabled: false
     models:
-      - MiniMax-M2.5-highspeed
+      - claude-sonnet-4-6
   test_gen:
     enabled: false
     models:
-      - MiniMax-M2.5-highspeed
+      - claude-sonnet-4-6
   verify:
     enabled: true
 
@@ -35,7 +35,7 @@ skills:
 
 prompt_engineering:
   enabled: true
-  model: MiniMax-M2.5-highspeed
+  model: claude-sonnet-4-6
   phases:
     decompose:
       enabled: true

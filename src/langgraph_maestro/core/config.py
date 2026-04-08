@@ -115,7 +115,7 @@ def get_pe_config(config: dict[str, Any]) -> dict[str, Any]:
     """Extract prompt engineering middleware settings from config."""
     defaults = {
         "enabled": False,
-        "model": "MiniMax-M2.5-highspeed",
+        "model": "claude-sonnet-4-6",
         "phases": [],
         "timeout": 120,
         "fallback_to_raw": True,

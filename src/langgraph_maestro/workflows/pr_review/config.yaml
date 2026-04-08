@@ -8,13 +8,13 @@ reviewers:
 
 phases:
   fetch:
-    - MiniMax-M2.5-highspeed
+    - claude-sonnet-4-6
     - arthurcollet/Qwen3.5-122B-A10B-mlx-nvfp4
   analyze:
-    - MiniMax-M2.5-highspeed
+    - claude-sonnet-4-6
     - arthurcollet/Qwen3.5-122B-A10B-mlx-nvfp4
   synthesize:
-    - MiniMax-M2.5-highspeed
+    - claude-sonnet-4-6
     - arthurcollet/Qwen3.5-122B-A10B-mlx-nvfp4
 
   # Two-tier escalation: first_pass used on initial review, escalation on REJECT
@@ -39,7 +39,7 @@ skills:
 
   prompt_engineering:
     enabled: true
-    model: MiniMax-M2.5-highspeed
+    model: claude-sonnet-4-6
     phases:
       decompose:
         enabled: false

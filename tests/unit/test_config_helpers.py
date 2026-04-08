@@ -57,7 +57,7 @@ class TestGetPeConfig:
     def test_defaults_when_missing(self):
         result = get_pe_config({})
         assert result["enabled"] is False
-        assert result["model"] == "MiniMax-M2.5-highspeed"
+        assert result["model"] == "claude-sonnet-4-6"
         assert result["phases"] == []
         assert result["timeout"] == 120
         assert result["fallback_to_raw"] is True
@@ -82,7 +82,7 @@ class TestGetPeConfig:
         config = {"prompt_engineering": {"enabled": True}}
         result = get_pe_config(config)
         assert result["enabled"] is True
-        assert result["model"] == "MiniMax-M2.5-highspeed"  # default
+        assert result["model"] == "claude-sonnet-4-6"  # default
 
 
 class TestGetTimeoutForModel:
@@ -108,11 +108,11 @@ class TestGetTimeoutForModel:
 
     def test_no_models_section_uses_default(self):
         config = {"timeouts": {"default": 300}}
-        assert get_timeout_for_model("MiniMax-M2.5", config) == 300
+        assert get_timeout_for_model("claude-sonnet-4-6", config) == 300
 
     def test_empty_config_uses_300(self):
         assert get_timeout_for_model("anything", {}) == 300
 
     def test_model_key_missing_falls_back_to_default(self):
         config = {"timeouts": {"default": 500, "models": {"local": 100}}}
-        assert get_timeout_for_model("MiniMax-M2.5", config) == 500
+        assert get_timeout_for_model("claude-sonnet-4-6", config) == 500

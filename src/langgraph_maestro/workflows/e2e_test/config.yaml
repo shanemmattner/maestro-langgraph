@@ -5,17 +5,17 @@ max_retries: 3
 
 phases:
   analyze:
-    - MiniMax-M2.5-highspeed
+    - claude-sonnet-4-6
   design:
-    - MiniMax-M2.5-highspeed
+    - claude-sonnet-4-6
   generate:
-    - MiniMax-M2.5-highspeed
+    - claude-sonnet-4-6
   execute:
-    - MiniMax-M2.5-highspeed
+    - claude-sonnet-4-6
   evaluate:
-    - MiniMax-M2.5-highspeed
+    - claude-sonnet-4-6
   report:
-    - MiniMax-M2.5-highspeed
+    - claude-sonnet-4-6
 
 # Test framework settings
 test_framework:
@@ -53,7 +53,7 @@ skills:
 
   prompt_engineering:
     enabled: true
-    model: MiniMax-M2.5-highspeed
+    model: claude-sonnet-4-6
     phases:
       analyze:
         enabled: true
