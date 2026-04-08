@@ -24,6 +24,7 @@ The ideal flow:
 - **Stall and budget detection** -- automatic timeout, no-progress, and loop detection; per-run and daily token budget guards
 - **Structured output** -- Pydantic schema validation with auto-retry on parse failures
 - **9 built-in workflows** -- from simple chain-of-thought to full issue-to-PR automation
+- **Web search & verification** -- self-hosted SearXNG + Crawl4AI for web search and scraping. Zero API costs, zero rate limits. Workflows can verify claims against live web sources.
 - **One-command infrastructure** -- `./infrastructure/setup.sh` installs Docker, generates secrets, and starts Langfuse + Grafana + Prometheus
 
 ## Quick start
@@ -174,6 +175,44 @@ This starts:
 | MinIO | 9090 | Object storage for Langfuse |
 
 LLM calls emit OTel spans with GenAI semantic conventions (`gen_ai.system`, `gen_ai.request.model`, `gen_ai.usage.input_tokens`, etc.). Set `MAESTRO_TRACE_CONTENT=false` in production to omit prompt/response content from spans.
+
+### Web search & scraping (optional)
+
+Enable self-hosted web search and scraping for workflow verification:
+
+```bash
+cd infrastructure
+docker compose --profile search up -d
+```
+
+This adds:
+
+| Service | Port | Purpose |
+|---------|------|---------|
+| SearXNG | 8888 | Meta-search engine (Google, Bing, DuckDuckGo, etc.) |
+| Crawl4AI | 11235 | Web scraping with clean markdown output |
+
+Use in your workflows:
+
+```python
+from langgraph_maestro.core.web import web_search, web_scrape, search_and_extract
+
+# Search
+results = web_search("LangGraph checkpointing best practices")
+
+# Scrape a URL to clean markdown
+page = web_scrape("https://docs.example.com/guide")
+
+# Search + scrape top results in one call
+findings = search_and_extract("how to implement HITL", max_results=3)
+```
+
+Content is automatically truncated to prevent context window blowup. Configure via env vars:
+
+```bash
+MAESTRO_SEARXNG_URL=http://localhost:8888    # SearXNG endpoint
+MAESTRO_CRAWL4AI_URL=http://localhost:11235  # Crawl4AI endpoint
+```
 
 ## Custom workflows
 

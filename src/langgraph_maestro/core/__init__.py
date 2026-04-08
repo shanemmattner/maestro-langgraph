@@ -18,6 +18,10 @@ _EXPORTS = {
     "get_skills_config": ("langgraph_maestro.core.config", "get_skills_config"),
     "get_pe_config": ("langgraph_maestro.core.config", "get_pe_config"),
     "get_timeout_for_model": ("langgraph_maestro.core.config", "get_timeout_for_model"),
+    "web_search": ("langgraph_maestro.core.web", "web_search"),
+    "web_scrape": ("langgraph_maestro.core.web", "web_scrape"),
+    "search_and_extract": ("langgraph_maestro.core.web", "search_and_extract"),
+    "is_search_available": ("langgraph_maestro.core.web", "is_search_available"),
 }
 
 __all__ = sorted(_EXPORTS)

@@ -225,6 +225,9 @@ print_summary() {
     echo "Then run a workflow:"
     echo "  maestro run chain_of_thought --task 'Your question here'"
     echo ""
+    echo "To enable web search & scraping (SearXNG + Crawl4AI):"
+    echo "  cd infrastructure && \$COMPOSE --profile search up -d"
+    echo ""
     echo "To stop: ./infrastructure/stop.sh"
 }
 

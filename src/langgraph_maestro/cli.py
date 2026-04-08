@@ -188,6 +188,20 @@ def _cmd_verify(args: argparse.Namespace) -> int:
         return r.returncode == 0
     check("claude CLI", _check_claude_cli)
 
+    # Check web search stack (optional)
+    def _check_search():
+        from langgraph_maestro.core.web import is_search_available
+        return is_search_available()
+    def _check_scrape():
+        from langgraph_maestro.core.web import is_scrape_available
+        return is_scrape_available()
+    if _check_search():
+        check("SearXNG (web search)", _check_search)
+        check("Crawl4AI (web scrape)", _check_scrape)
+    else:
+        print("  SKIP  Web search stack (not running, optional)")
+        print("        Start with: cd infrastructure && docker compose --profile search up -d")
+
     print(f"\n{checks_passed} passed, {checks_failed} failed")
     return 0 if checks_failed == 0 else 1
 

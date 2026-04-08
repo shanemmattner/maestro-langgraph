@@ -8,10 +8,13 @@
 #   - MinIO: 9090
 #   - Grafana: 3200
 #   - Prometheus: 9091
+#   - SearXNG: 8888
+#   - Crawl4AI: 11235
 #
 # Usage:
 #   cp .env.example .env && edit .env
-#   docker compose up -d
+#   docker compose up -d                        # core stack only
+#   docker compose --profile search up -d       # core + web search/scrape
 
 services:
   # ============================================
@@ -222,6 +225,50 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # ============================================
+  # WEB SEARCH & SCRAPING (optional profile)
+  # ============================================
+  searxng:
+    image: docker.io/searxng/searxng:latest
+    profiles: ["search"]
+    restart: unless-stopped
+    ports:
+      - "8888:8080"
+    volumes:
+      - ./searxng:/etc/searxng
+    environment:
+      SEARXNG_BASE_URL: http://localhost:8888
+    networks:
+      - langfuse-net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  crawl4ai:
+    image: docker.io/unclecode/crawl4ai:latest
+    profiles: ["search"]
+    restart: unless-stopped
+    ports:
+      - "11235:11235"
+    environment:
+      CRAWL4AI_API_TOKEN: ""
+      MAX_CONCURRENT_TASKS: "5"
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    networks:
+      - langfuse-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11235/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 networks:
   langfuse-net:
