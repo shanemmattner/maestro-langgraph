@@ -6,10 +6,10 @@ datasources:
     uid: Langfuse-Postgres
     type: postgres
     url: postgres:5432
-    database: langfuse
-    user: langfuse
+    database: ${POSTGRES_DB:-langfuse}
+    user: ${POSTGRES_USER:-langfuse}
     secureJsonData:
-      password: langfuse
+      password: ${POSTGRES_PASSWORD:-langfuse}
     jsonData:
       sslmode: disable
       postgresVersion: 1600
@@ -24,6 +24,6 @@ datasources:
       port: 8123
       protocol: http
       defaultDatabase: default
-      username: clickhouse
+      username: ${CLICKHOUSE_USER:-clickhouse}
     secureJsonData:
-      password: clickhouse
+      password: ${CLICKHOUSE_PASSWORD:-clickhouse}
