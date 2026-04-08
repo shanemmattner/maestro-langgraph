@@ -2,17 +2,29 @@
 
 Multi-agent LLM workflow orchestration framework built on [LangGraph](https://github.com/langchain-ai/langgraph).
 
+## Philosophy
+
+**LLM workflows fail when agents run blind.** The core principle of this framework is: every task must have a measurable definition of success before work begins.
+
+The ideal flow:
+1. **User provides ground truth** -- a reference file, expected output, test case, or success criteria alongside the task. The LLM works against it autonomously.
+2. **LLM generates its own** -- if no ground truth is provided, the agent writes a test first, defines acceptance criteria, or creates a reference to compare against.
+3. **LLM stops and asks** -- if the agent can't determine what success looks like, it pauses and requests clarification rather than producing unverifiable output.
+
+**Quality over speed, always.** Every LLM call is traced, every decision is logged, every iteration is visible in Langfuse. If a workflow can't prove it succeeded, it hasn't.
+
 ## Features
 
-- **Multi-provider LLM routing** -- call Claude, MiniMax, OpenRouter, or local MLX models through a unified `call_llm()` interface with automatic fallback
-- **MC agent** -- run Claude Code as a programmable API with 84% fewer tool-schema tokens via lightweight MCP tool schemas
-- **Durable checkpointing** -- SQLite-backed LangGraph checkpointing for pause/resume and crash recovery
-- **OpenTelemetry tracing** -- GenAI semantic conventions (`gen_ai.*` attributes) with Langfuse integration for full prompt/response replay
+- **Ground-truth-driven execution** -- agents define success criteria before working, test against reference outputs, and stop to ask when uncertain
+- **Multi-provider LLM routing** -- call Claude, Codex/GPT, MiniMax, or local MLX models through a unified `call_llm()` interface with automatic fallback chains
+- **MC agent** -- run Claude Code CLI as a programmable API with 84% fewer tool-schema tokens via lightweight MCP tool schemas (~900 tokens vs ~5,800)
+- **Durable checkpointing** -- SQLite-backed state persistence for pause/resume, crash recovery, and human-in-the-loop workflows
+- **Full observability** -- OpenTelemetry tracing with Langfuse integration, Grafana dashboards, Prometheus metrics. Every prompt, response, token count, and latency is recorded.
 - **Config-driven workflows** -- YAML files define phases, models, loop limits, and optional stages per workflow
 - **Stall and budget detection** -- automatic timeout, no-progress, and loop detection; per-run and daily token budget guards
-- **Structured output** -- Pydantic schema validation with auto-retry on parse failures (Instructor-style)
-- **Prompt engineering** -- built-in prompt improvement node for automatic prompt refinement
+- **Structured output** -- Pydantic schema validation with auto-retry on parse failures
 - **9 built-in workflows** -- from simple chain-of-thought to full issue-to-PR automation
+- **One-command infrastructure** -- `./infrastructure/setup.sh` installs Docker, generates secrets, and starts Langfuse + Grafana + Prometheus
 
 ## Quick start
 
