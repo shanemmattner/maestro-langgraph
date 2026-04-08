@@ -45,7 +45,7 @@ install_docker() {
     if ! docker info &>/dev/null; then
         if command -v colima &>/dev/null; then
             info "Starting Colima..."
-            colima start --memory 4 --cpu 2
+            colima start --memory 4 --cpu 4
         elif [ -d "/Applications/Docker.app" ]; then
             info "Starting Docker Desktop..."
             open -a Docker
@@ -60,7 +60,7 @@ install_docker() {
             check_brew
             brew install colima
             info "Starting Colima..."
-            colima start --memory 4 --cpu 2
+            colima start --memory 4 --cpu 4
         fi
     fi
 

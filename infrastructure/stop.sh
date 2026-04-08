@@ -16,5 +16,13 @@ if [ -f "$PID_FILE" ]; then
 fi
 
 echo "Stopping infrastructure..."
-docker compose down
+if docker compose version &>/dev/null; then
+    docker compose down
+elif command -v docker-compose &>/dev/null; then
+    docker-compose down
+else
+    echo "ERROR: No docker compose found"
+    exit 1
+fi
 echo "Done. Data volumes preserved."
+echo "To also stop the Colima VM: colima stop"
