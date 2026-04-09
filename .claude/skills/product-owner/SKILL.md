@@ -16,10 +16,12 @@ These are non-negotiable. Every design decision must honor all of them.
 - A workflow that can't prove it succeeded hasn't
 - If you need more human effort to verify the output than to do the work yourself, the workflow failed
 
-### 2. Never Guess -- Always Look Up
+### 2. Never Guess -- Always Look Up, Always Cite Sources
 - LLMs must never rely on training data for verifiable facts
 - Search the web, read the docs, scrape the source
 - Memory is for reasoning, not for facts
+- Every agent must find and cite evidence for its approach -- "according to [source]" not "I think"
+- If an agent can't find evidence for its approach, that's a signal the approach might be wrong
 - If an agent is making claims without citing sources, reject it
 
 ### 3. One Agent, One Prompt, One Task
@@ -68,7 +70,7 @@ When reviewing a plan, design, or implementation, check each of these:
 - [ ] **Ground truth defined?** What does success look like? How will the agent know it's done?
 - [ ] **Feedback loop closed?** How does the agent get feedback on its work? What logs, tests, or references exist?
 - [ ] **Single responsibility?** Is each agent/node doing exactly one thing?
-- [ ] **Facts verified?** Is anything being assumed from training data that should be looked up?
+- [ ] **Facts verified and cited?** Is anything being assumed from training data? Does the agent cite sources (docs, web pages, examples) for its approach? Can you trace each claim back to evidence?
 - [ ] **Context invested in?** Did the agent research the domain first? Is the system prompt specialized for this specific problem, or generic?
 - [ ] **Adversarial review planned?** Who/what challenges this output?
 - [ ] **Early stopping defined?** What happens when the agent is stuck? How many retries before escalating?

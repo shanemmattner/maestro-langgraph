@@ -7,8 +7,10 @@ Multi-agent LLM workflow orchestration framework built on [LangGraph](https://gi
 ### 1. Quality Over Everything
 If you can't trust the output, it's worthless -- you need human effort to verify it anyway, which defeats the purpose. Every design decision prioritizes correctness over speed. A slow, verified result beats a fast, wrong one. If a workflow can't prove it succeeded, it hasn't.
 
-### 2. Never Guess -- Always Look Up
+### 2. Never Guess -- Always Look Up, Always Cite Sources
 LLMs must never rely on training data for verifiable facts. If there's documentation, read it. If there's an API spec, fetch it. If there's a web page with the answer, search and scrape it. The self-hosted SearXNG + Crawl4AI stack exists for exactly this -- every agent can search the web and verify claims at zero cost. Memory is for reasoning, not for facts.
+
+Every agent should actively search for evidence to support its approach. Not "I think this is correct" but "according to [source], this is the documented way to do it." When an agent chooses an implementation pattern, it should find proof that the pattern works -- a docs page, a Stack Overflow answer, a GitHub example. If it can't find evidence, that's a signal the approach might be wrong.
 
 ### 3. One Agent, One Prompt, One Task
 Each agent gets a single, focused job. No sprawling mega-prompts that plan, execute, review, and fix in one shot. LangGraph's value is decomposition: each node does one thing well, the graph handles orchestration. If a node is doing two things, split it into two nodes.

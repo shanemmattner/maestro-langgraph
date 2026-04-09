@@ -8,7 +8,7 @@ These principles govern every workflow, every agent, and every design decision i
 
 1. **Quality Over Everything** -- If the output can't be trusted, it's worthless. Correctness over speed, always. A workflow that can't prove it succeeded hasn't.
 
-2. **Never Guess -- Always Look Up** -- Never rely on LLM training data for verifiable facts. Search the web (`web_search()`), read docs (`web_scrape()`), check the actual source. Memory is for reasoning, not facts.
+2. **Never Guess -- Always Look Up, Always Cite Sources** -- Never rely on LLM training data for verifiable facts. Search the web (`web_search()`), read docs (`web_scrape()`), check the actual source. Memory is for reasoning, not facts. Every agent must find evidence for its approach -- docs, examples, references. "According to [source]" not "I think." If you can't find evidence, the approach might be wrong.
 
 3. **One Agent, One Prompt, One Task** -- Each node does one focused job. If it's doing two things, split it. The graph handles orchestration.
 
