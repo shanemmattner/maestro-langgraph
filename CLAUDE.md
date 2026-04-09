@@ -28,9 +28,15 @@ These principles govern every workflow, every agent, and every design decision i
 
 9. **Self-Improving Workflows** -- Workflows are not static. After every run: review what worked, what failed, what context was missing. Build deterministic tools (Python scripts, bash, daemons) to replace repeated LLM calls. Grow a tool library and curate which tools each agent gets -- customized context + curated tools = specialized agents. LLMs handle novel reasoning; deterministic tools handle everything else. The system gets more reliable with each run.
 
-10. **Real-World E2E Testing** -- "What would a real human do to test this?" Automate that. Not mocked unit tests -- real inputs, real systems, real outputs. The test must be trustworthy enough to replace manual verification.
+10. **Start Simple** -- Don't build an 11-node graph on day one. Start with one agent, one task, one ground truth. Add complexity only when simpler approaches fail. Every node must earn its place.
 
-When building or modifying workflows, ask: Does this design honor all 10 principles? If not, fix it before proceeding.
+11. **Human-in-the-Loop Is a Feature** -- The system should know when to stop and ask. Low confidence, failed verification, ambiguous task → pause, checkpoint, ask the human. This is the most reliable path to quality, not a failure mode.
+
+12. **Cost-Aware Execution** -- Every workflow has a token budget. Cheap models for research/review, mid-tier for execution, top-tier only where reasoning demands it. Budget exhaustion triggers graceful degradation, not silent spending.
+
+13. **Real-World E2E Testing** -- "What would a real human do to test this?" Automate that. Not mocked unit tests -- real inputs, real systems, real outputs. The test must be trustworthy enough to replace manual verification.
+
+When building or modifying workflows, ask: Does this design honor all 13 principles? If not, fix it before proceeding.
 
 ## Quick reference
 

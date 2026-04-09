@@ -75,7 +75,16 @@ Workflows are not static. Every run is an opportunity to improve the system:
 
 The goal: LLMs handle novel reasoning, deterministic tools handle everything else. Over time, more work shifts from LLM to tool. The tool library grows, agent specialization deepens, and the system gets more reliable with each run.
 
-### 10. Real-World E2E Testing
+### 10. Start Simple, Add Complexity When Proven Necessary
+Don't build an 11-node graph on day one. Start with a single agent, a clear task, and a ground truth file. Add decomposition when tasks are too big. Add adversarial review when outputs aren't trustworthy. Add context engineering when agents keep missing domain knowledge. Every node in the graph must earn its place by solving a problem that simpler approaches couldn't. The principles describe where you're going, not where you start.
+
+### 11. Human-in-the-Loop Is a Feature, Not a Failure
+The system should know when to stop and ask. When confidence is low, when verification fails, when the task is ambiguous -- pause, checkpoint state, and ask the human. This is not a failure mode. It's the most reliable path to quality. LangGraph's `interrupt()` with SQLite checkpointing makes this a first-class capability: the workflow pauses, the human provides input, and the workflow resumes exactly where it left off.
+
+### 12. Cost-Aware Execution
+Every workflow has a token budget. Every agent has a ceiling. Use cheap models (MiniMax, local) for research, analysis, and review. Use mid-tier models (Sonnet) for execution. Use top-tier models (Opus) only where the reasoning demands it. When the budget runs out, degrade gracefully -- don't silently spend. Early stopping (principle 6) is also a cost control: if the agent isn't making progress, stop burning tokens.
+
+### 13. Real-World E2E Testing
 Ask: "What would a real human user do to test this?" Then automate that. The goal is to replace manual human testing entirely -- the automated test must be trustworthy enough that you don't need to manually verify after. Not mocked unit tests on fake data -- real inputs through the real system producing real outputs. When you can't fully automate it, be explicit about what the user needs to help set up.
 
 ## Features
