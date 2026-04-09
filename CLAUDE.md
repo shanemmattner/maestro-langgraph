@@ -32,11 +32,9 @@ These principles govern every workflow, every agent, and every design decision i
 
 11. **Human-in-the-Loop Is a Feature** -- The system should know when to stop and ask. Low confidence, failed verification, ambiguous task → pause, checkpoint, ask the human. This is the most reliable path to quality, not a failure mode.
 
-12. **Cost-Aware Execution** -- Every workflow has a token budget. Cheap models for research/review, mid-tier for execution, top-tier only where reasoning demands it. Budget exhaustion triggers graceful degradation, not silent spending.
+12. **Real-World E2E Testing** -- "What would a real human do to test this?" Automate that. Not mocked unit tests -- real inputs, real systems, real outputs. The test must be trustworthy enough to replace manual verification.
 
-13. **Real-World E2E Testing** -- "What would a real human do to test this?" Automate that. Not mocked unit tests -- real inputs, real systems, real outputs. The test must be trustworthy enough to replace manual verification.
-
-When building or modifying workflows, ask: Does this design honor all 13 principles? If not, fix it before proceeding.
+When building or modifying workflows, ask: Does this design honor all 12 principles? If not, fix it before proceeding.
 
 ## Quick reference
 

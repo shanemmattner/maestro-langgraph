@@ -81,10 +81,7 @@ Don't build an 11-node graph on day one. Start with a single agent, a clear task
 ### 11. Human-in-the-Loop Is a Feature, Not a Failure
 The system should know when to stop and ask. When confidence is low, when verification fails, when the task is ambiguous -- pause, checkpoint state, and ask the human. This is not a failure mode. It's the most reliable path to quality. LangGraph's `interrupt()` with SQLite checkpointing makes this a first-class capability: the workflow pauses, the human provides input, and the workflow resumes exactly where it left off.
 
-### 12. Cost-Aware Execution
-Every workflow has a token budget. Every agent has a ceiling. Use cheap models (MiniMax, local) for research, analysis, and review. Use mid-tier models (Sonnet) for execution. Use top-tier models (Opus) only where the reasoning demands it. When the budget runs out, degrade gracefully -- don't silently spend. Early stopping (principle 6) is also a cost control: if the agent isn't making progress, stop burning tokens.
-
-### 13. Real-World E2E Testing
+### 12. Real-World E2E Testing
 Ask: "What would a real human user do to test this?" Then automate that. The goal is to replace manual human testing entirely -- the automated test must be trustworthy enough that you don't need to manually verify after. Not mocked unit tests on fake data -- real inputs through the real system producing real outputs. When you can't fully automate it, be explicit about what the user needs to help set up.
 
 ## Features
