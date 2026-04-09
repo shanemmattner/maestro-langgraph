@@ -1,0 +1,17 @@
+# Task Analysis
+
+Analyze the following task. Understand what needs to be done, identify relevant files, constraints, and potential challenges.
+
+## Task
+{task}
+
+## Working Directory
+{cwd}
+
+## Instructions
+1. Identify what the task is asking for
+2. Think about what files and code are involved
+3. Note any constraints or edge cases
+4. Summarize your understanding
+
+Respond with your analysis as clear text.

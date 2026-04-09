@@ -1,5 +1,6 @@
 """Workflow registry — imports trigger register_workflow() in each package."""
 
+from langgraph_maestro.workflows.adaptive.graph import run_workflow as run_adaptive
 from langgraph_maestro.workflows.chain_of_thought.graph import run_workflow as run_chain_of_thought
 from langgraph_maestro.workflows.customize.graph import run_workflow as run_customize
 from langgraph_maestro.workflows.default.graph import run_workflow as run_default
@@ -11,6 +12,7 @@ from langgraph_maestro.workflows.meta_review.graph import run_workflow as run_me
 from langgraph_maestro.workflows.pr_review.graph import run_workflow as run_pr_review
 
 __all__ = [
+    "run_adaptive",
     "run_chain_of_thought",
     "run_customize",
     "run_default",

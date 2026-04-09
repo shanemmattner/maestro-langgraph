@@ -1,0 +1,23 @@
+# Verify Implementation
+
+Check whether this piece of work was completed correctly.
+
+## Piece
+**{piece_id}**: {piece_description}
+
+## Acceptance Criteria
+{acceptance_criteria}
+
+## What Was Done
+{piece_result}
+
+## Instructions
+Verify the work meets the acceptance criteria. Check for:
+1. Does it satisfy the acceptance criteria?
+2. Are there any obvious bugs or issues?
+3. Were any files left in a broken state?
+
+Respond with JSON:
+```json
+{{"verified": true/false, "issues": "Description of any issues, or empty string if none"}}
+```

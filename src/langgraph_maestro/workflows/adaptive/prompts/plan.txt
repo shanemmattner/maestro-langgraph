@@ -1,0 +1,23 @@
+# Implementation Plan
+
+Create a step-by-step plan for this task. Break it into small, independently verifiable pieces.
+
+## Task
+{task}
+
+## Context
+{context}
+
+{adversarial_section}
+
+## Instructions
+Break this into pieces. Each piece should be small enough to implement and verify independently.
+
+Respond with JSON:
+```json
+{{
+  "pieces": [
+    {{"id": "1-short-name", "description": "What to do", "acceptance_criteria": "How to verify it worked"}}
+  ]
+}}
+```

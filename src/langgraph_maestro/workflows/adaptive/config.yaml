@@ -1,0 +1,23 @@
+workflow: adaptive
+
+phases:
+  think:
+    - claude-sonnet-4-6
+  plan:
+    - claude-sonnet-4-6
+  adversarial:
+    - claude-sonnet-4-6
+  act:
+    - claude-sonnet-4-6
+  verify:
+    - claude-sonnet-4-6
+
+loops:
+  max_replan_rounds: 2
+  max_piece_retries: 2
+
+timeouts:
+  default: 300
+
+escalation:
+  enabled: true

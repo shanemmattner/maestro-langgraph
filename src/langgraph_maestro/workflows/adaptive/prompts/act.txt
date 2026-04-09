@@ -1,0 +1,20 @@
+# Execute Piece
+
+Implement the following piece of work.
+
+## Task Context
+{task}
+
+## Overall Plan
+{plan}
+
+## Current Piece
+**{piece_id}**: {piece_description}
+
+## Acceptance Criteria
+{acceptance_criteria}
+
+{retry_section}
+
+## Instructions
+Implement this piece. Make the changes needed. Be precise and focused -- only do what this piece requires.
