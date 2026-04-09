@@ -220,7 +220,7 @@ def build_context_node(state: dict) -> dict:
     cwd = state.get("cwd") or state.get("repo_path")
     config_path = state.get("config_path", _CONFIG)
     config = load_config(config_path)
-    models = _safe_get_models("context", config)
+    models = _safe_get_models("build_context", config)
     prompts_path = Path(_PROMPTS)
 
     logger.info("build_context_start", extra={"num_findings": len(domain_research)})
@@ -414,7 +414,7 @@ def plan_piece_node(state: dict) -> dict:
     cwd = state.get("cwd") or state.get("repo_path")
     config_path = state.get("config_path", _CONFIG)
     config = load_config(config_path)
-    models = _safe_get_models("plan_piece", config)
+    models = _safe_get_models("execute", config)
     prompts_path = Path(_PROMPTS)
 
     if idx >= len(subtasks):
@@ -639,7 +639,7 @@ def piece_review_node(state: dict) -> dict:
     cwd = state.get("cwd") or state.get("repo_path")
     config_path = state.get("config_path", _CONFIG)
     config = load_config(config_path)
-    models = _safe_get_models("review", config)
+    models = _safe_get_models("piece_review", config)
     prompts_path = Path(_PROMPTS)
 
     if idx >= len(subtasks):
@@ -729,7 +729,7 @@ def holistic_review_node(state: dict) -> dict:
     cwd = state.get("cwd") or state.get("repo_path")
     config_path = state.get("config_path", _CONFIG)
     config = load_config(config_path)
-    models = _safe_get_models("review", config)
+    models = _safe_get_models("holistic_review", config)
     prompts_path = Path(_PROMPTS)
 
     logger.info("holistic_review_start", extra={"num_subtasks": len(subtasks)})
@@ -1011,7 +1011,7 @@ def after_action_review_node(state: dict) -> dict:
     cwd = state.get("cwd") or state.get("repo_path")
     config_path = state.get("config_path", _CONFIG)
     config = load_config(config_path)
-    models = _safe_get_models("aar", config)
+    models = _safe_get_models("after_action", config)
 
     logger.info("aar_start")
 
