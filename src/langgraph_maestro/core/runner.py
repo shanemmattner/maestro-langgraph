@@ -3,7 +3,6 @@
 import logging
 import time
 
-from langgraph_maestro.core.services import ensure_stack_running
 from langgraph_maestro.core.tracing import get_tracer, flush_traces, set_current_trace_id
 
 logger = logging.getLogger(__name__)
@@ -21,8 +20,6 @@ def run_workflow(name: str, graph, initial_state: dict, thread_id: str) -> dict:
     Returns:
         Final state dict from graph.invoke().
     """
-    ensure_stack_running()
-
     # Append timestamp to prevent checkpoint collision on re-runs
     unique_thread_id = f"{thread_id}-{int(time.time())}"
 

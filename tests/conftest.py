@@ -1,43 +1,7 @@
 import logging
 import pytest
-import yaml
-from pathlib import Path
 from unittest.mock import patch, MagicMock
-from langgraph_maestro.core.config import clear_cache
 from langgraph_maestro.core.logging import setup_logging
-
-
-@pytest.fixture
-def tmp_config(tmp_path):
-    def _make(content: dict):
-        f = tmp_path / 'config.yaml'
-        f.write_text(yaml.dump(content))
-        clear_cache()
-        return str(f)
-    yield _make
-    clear_cache()
-
-
-@pytest.fixture(autouse=True)
-def disable_pe(request):
-    """Disable PE in all tests so it doesn't consume mock responses or hit real APIs.
-
-    Tests that explicitly test PE should mark with @pytest.mark.enable_pe to skip this.
-    """
-    if 'enable_pe' in [m.name for m in request.node.iter_markers()]:
-        yield
-    else:
-        with patch('langgraph_maestro.core.pe.improve_prompt', side_effect=lambda prompt, **kwargs: prompt):
-            yield
-
-
-@pytest.fixture(autouse=True)
-def deterministic_eval(request):
-    """No-op fixture — execute node no longer calls evaluate_subtask inline.
-
-    Kept for backwards compatibility with tests marked @pytest.mark.enable_eval.
-    """
-    yield
 
 
 @pytest.fixture

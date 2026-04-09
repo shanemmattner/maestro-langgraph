@@ -421,17 +421,12 @@ def call_llm(
     """Call LLM with the specified model.
 
     Routes to provider based on model string.
-    Applies skill injection if config is provided.
-    Uses per-model timeout from config if available.
     Traces to Langfuse via OTel if configured.
-    """
-    # Skill injection + per-model timeout from config
-    if config is not None:
-        from langgraph_maestro.core.skills import inject_skills
-        from langgraph_maestro.core.config import get_timeout_for_model
-        prompt, system_prompt = inject_skills(prompt, system_prompt, model, phase, config)
-        timeout = get_timeout_for_model(model, config)
 
+    The ``config`` parameter is accepted for backward compatibility but ignored.
+    Timeout defaults to 300s unless explicitly overridden by the ``timeout`` arg.
+    """
+    # config parameter accepted but ignored (decoupled from config.py / skills.py)
     provider_name, provider_fn = get_provider(model)
     start = time.time()
 
