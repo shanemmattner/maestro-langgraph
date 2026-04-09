@@ -22,9 +22,11 @@ These principles govern every workflow, every agent, and every design decision i
 
 6. **Adversarial Review -- Always** -- Every output gets challenged by a different agent. The agent that wrote the code never approves it. Find what's wrong, what's hallucinated, what's bullshit.
 
-7. **Real-World E2E Testing** -- "What would a real human do to test this?" Automate that. Not mocked unit tests -- real inputs, real systems, real outputs.
+7. **Context Engineering** -- Output quality = context quality. Before executing, invest in building the agent's context: research the domain, gather specific facts, construct a specialized prompt. After each attempt, analyze what the agent didn't know, research more, rebuild a better agent. The agent itself evolves, not just the feedback.
 
-When building or modifying workflows, ask: Does this design honor all 7 principles? If not, fix it before proceeding.
+8. **Real-World E2E Testing** -- "What would a real human do to test this?" Automate that. Not mocked unit tests -- real inputs, real systems, real outputs.
+
+When building or modifying workflows, ask: Does this design honor all 8 principles? If not, fix it before proceeding.
 
 ## Quick reference
 

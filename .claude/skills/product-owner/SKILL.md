@@ -47,7 +47,15 @@ These are non-negotiable. Every design decision must honor all of them.
 - Find what's wrong, what's hallucinated, what's bullshit
 - This is not optional -- it's built into the loop
 
-### 7. Real-World E2E Testing
+### 7. Context Engineering
+- Output quality = context quality. Invest in context before execution.
+- Before any agent runs: research the domain, gather specific facts, read the actual docs
+- Build specialized system prompts with domain knowledge baked in -- not generic instructions
+- After each attempt: analyze what the agent didn't know, research more, rebuild a BETTER agent
+- The agent itself evolves across iterations, not just the feedback it receives
+- The "research and build agent" step is where most intelligence lives
+
+### 8. Real-World E2E Testing
 - "What would a real human user do to test this?"
 - Automate that, not mocked unit tests
 - When you can't automate it, be explicit about what the user needs to set up
@@ -61,6 +69,7 @@ When reviewing a plan, design, or implementation, check each of these:
 - [ ] **Feedback loop closed?** How does the agent get feedback on its work? What logs, tests, or references exist?
 - [ ] **Single responsibility?** Is each agent/node doing exactly one thing?
 - [ ] **Facts verified?** Is anything being assumed from training data that should be looked up?
+- [ ] **Context invested in?** Did the agent research the domain first? Is the system prompt specialized for this specific problem, or generic?
 - [ ] **Adversarial review planned?** Who/what challenges this output?
 - [ ] **Early stopping defined?** What happens when the agent is stuck? How many retries before escalating?
 - [ ] **E2E testable?** Could a real user verify this works? Is there a concrete test plan?

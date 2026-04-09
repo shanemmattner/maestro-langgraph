@@ -40,7 +40,17 @@ Each iteration:
 ### 6. Adversarial Review -- Always
 Every output gets challenged by a different agent whose job is to find what's wrong, what's hallucinated, what's bullshit. This isn't an optional "nice to have" review phase. It's built into the loop. The agent that wrote the code never approves it.
 
-### 7. Real-World E2E Testing
+### 7. Context Engineering
+The quality of the output is directly proportional to the quality of the context. A mediocre model with perfect context beats a great model with vague context.
+
+Before any agent executes, invest in building its context:
+1. **Research phase**: Search the web, read docs, find prior art, gather domain-specific knowledge
+2. **Build a specialized agent**: Construct a system prompt with all relevant context baked in -- not generic instructions, but specific facts, constraints, and examples for *this* problem
+3. **Review and rebuild**: After the first attempt, analyze what the agent didn't know. Research more, build a *better* agent with the gaps filled. The agent itself evolves across iterations, not just the feedback it receives.
+
+This means the "research and build agent" step is where most of the intelligence lives. Execution is almost mechanical once the context is right.
+
+### 8. Real-World E2E Testing
 Ask: "What would a real human user do to test this?" Then automate that. Not mocked unit tests on fake data -- real inputs through the real system producing real outputs. When you can't fully automate it, be explicit about what the user needs to help set up.
 
 ## Features
