@@ -4,20 +4,30 @@ Multi-agent LLM workflow orchestration framework built on [LangGraph](https://gi
 
 ## Principles
 
-### 1. Quality Over Everything
+### 1. LLM-First Development
+Everything in this framework is built by LLMs and for LLMs. Every design decision must consider: "Can an LLM understand this?"
+
+- **Semantic naming**: Function names are documentation. `validate_uart_packet_checksum()` not `check()`. An LLM reads the name and knows what it does.
+- **Structured, readable logs**: Logs must contain enough context that an LLM reading them can understand what happened without seeing the source code. Include inputs, outputs, decisions, and deltas.
+- **Diagnostic error messages**: Not `Error: failed` but `Error: UART checksum mismatch — expected 0x4A, got 0x3F at byte offset 127. Likely cause: baud rate mismatch.`
+- **Self-documenting file structure**: An LLM should understand the codebase from the directory tree alone.
+- **Comments explain WHY, not what**: The LLM can read the code — tell it why you made this choice, what alternatives you rejected, what constraints drove the decision.
+- **Semantic sentinels**: Named constants, typed return values, descriptive variable names. Every symbol an LLM encounters should carry meaning.
+
+### 2. Quality Over Everything
 If you can't trust the output, it's worthless -- you need human effort to verify it anyway, which defeats the purpose. Every design decision prioritizes correctness over speed. A slow, verified result beats a fast, wrong one. If a workflow can't prove it succeeded, it hasn't.
 
-### 2. Never Guess -- Always Look Up, Always Cite Sources
+### 3. Never Guess -- Always Look Up, Always Cite Sources
 LLMs must never rely on training data for verifiable facts. If there's documentation, read it. If there's an API spec, fetch it. If there's a web page with the answer, search and scrape it. The self-hosted SearXNG + Crawl4AI stack exists for exactly this -- every agent can search the web and verify claims at zero cost. Memory is for reasoning, not for facts.
 
 Every agent should actively search for evidence to support its approach. Not "I think this is correct" but "according to [source], this is the documented way to do it." When an agent chooses an implementation pattern, it should find proof that the pattern works -- a docs page, a Stack Overflow answer, a GitHub example. If it can't find evidence, that's a signal the approach might be wrong.
 
 Search is free and local (SearXNG + Crawl4AI), so prefer re-searching over assuming. Future optimization: cache research results to avoid redundant lookups across agents working on the same problem.
 
-### 3. One Agent, One Prompt, One Task
+### 4. One Agent, One Prompt, One Task
 Each agent gets a single, focused job. No sprawling mega-prompts that plan, execute, review, and fix in one shot. LangGraph's value is decomposition: each node does one thing well, the graph handles orchestration. If a node is doing two things, split it into two nodes.
 
-### 4. Closed-Loop Feedback
+### 5. Closed-Loop Feedback
 Every action needs observable, measurable feedback. No single-shot "here's my answer" workflows.
 
 - **Ground truth / reference files**: The agent needs something to compare against. A KiCad schematic, a UART byte stream, expected test output, an acceptance criteria doc -- whatever "correct" looks like for this task.
@@ -29,7 +39,7 @@ Every action needs observable, measurable feedback. No single-shot "here's my an
 
 **The user has a role here too.** They may need to provide reference files, install testing tools, or define what "real success" looks like. Workflows should be explicit about what they need from the user to close the loop.
 
-### 5. Iterative, Not Waterfall
+### 6. Iterative, Not Waterfall
 Work like a real engineer: look at the whole problem, research what you don't know, solve one small piece, verify it, step back, reassess, repeat.
 
 Each iteration:
@@ -41,10 +51,10 @@ Each iteration:
 
 **Early stopping**: If no measurable progress after 1-2 iterations, stop. Don't keep grinding -- either escalate to a human, try a completely different approach, or declare the task blocked. Same principle as ML training: if the loss plateaus, more epochs won't help.
 
-### 6. Adversarial Review -- Always
+### 7. Adversarial Review -- Always
 Every output gets challenged by a different agent whose job is to find what's wrong, what's hallucinated, what's bullshit. This isn't an optional "nice to have" review phase. It's built into the loop. The agent that wrote the code never approves it.
 
-### 7. Context Engineering
+### 8. Context Engineering
 The quality of the output is directly proportional to the quality of the context. A mediocre model with perfect context beats a great model with vague context.
 
 Before any agent executes, invest in building its context:
@@ -54,8 +64,8 @@ Before any agent executes, invest in building its context:
 
 This means the "research and build agent" step is where most of the intelligence lives. Execution is almost mechanical once the context is right.
 
-### 8. Real-World E2E Testing
-Ask: "What would a real human user do to test this?" Then automate that. Not mocked unit tests on fake data -- real inputs through the real system producing real outputs. When you can't fully automate it, be explicit about what the user needs to help set up.
+### 9. Real-World E2E Testing
+Ask: "What would a real human user do to test this?" Then automate that. The goal is to replace manual human testing entirely -- the automated test must be trustworthy enough that you don't need to manually verify after. Not mocked unit tests on fake data -- real inputs through the real system producing real outputs. When you can't fully automate it, be explicit about what the user needs to help set up.
 
 ## Features
 

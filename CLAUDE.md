@@ -6,27 +6,29 @@ Multi-agent LLM workflow orchestration framework built on LangGraph. Provides a 
 
 These principles govern every workflow, every agent, and every design decision in this framework. They are non-negotiable.
 
-1. **Quality Over Everything** -- If the output can't be trusted, it's worthless. Correctness over speed, always. A workflow that can't prove it succeeded hasn't.
+1. **LLM-First Development** -- Everything is built by LLMs and for LLMs. Semantic function names (`validate_uart_checksum()` not `check()`), structured logs with full context, diagnostic error messages, self-documenting file structure, comments that explain WHY not what. Every symbol carries meaning. An LLM should understand the codebase from the directory tree alone.
 
-2. **Never Guess -- Always Look Up, Always Cite Sources** -- Never rely on LLM training data for verifiable facts. Search the web (`web_search()`), read docs (`web_scrape()`), check the actual source. Memory is for reasoning, not facts. Every agent must find evidence for its approach -- docs, examples, references. "According to [source]" not "I think." If you can't find evidence, the approach might be wrong.
+2. **Quality Over Everything** -- If the output can't be trusted, it's worthless. Correctness over speed, always. A workflow that can't prove it succeeded hasn't.
 
-3. **One Agent, One Prompt, One Task** -- Each node does one focused job. If it's doing two things, split it. The graph handles orchestration.
+3. **Never Guess -- Always Look Up, Always Cite Sources** -- Never rely on LLM training data for verifiable facts. Search the web (`web_search()`), read docs (`web_scrape()`), check the actual source. Memory is for reasoning, not facts. Every agent must find evidence for its approach -- "according to [source]" not "I think." If you can't find evidence, the approach might be wrong.
 
-4. **Closed-Loop Feedback** -- Every action needs measurable feedback:
+4. **One Agent, One Prompt, One Task** -- Each node does one focused job. If it's doing two things, split it. The graph handles orchestration. Models do better when limited to one thing with excellent context about that one thing.
+
+5. **Closed-Loop Feedback** -- Every action needs measurable feedback:
    - Ground truth / reference files to compare against (user-provided ideal, LLM-generated acceptable, stop-and-ask last resort)
    - Logs as the primary feedback mechanism -- if the agent can't see it, it can't learn from it
    - Tests that run against real systems and produce measurable results
    - The user may need to help set up testing infrastructure
 
-5. **Iterative, Not Waterfall** -- Assess the whole problem → research → solve one small piece → verify → step back → reassess → repeat. Early stopping: no progress after 1-2 iterations = stop and escalate. Same as ML training -- if loss plateaus, more epochs won't help.
+6. **Iterative, Not Waterfall** -- Assess the whole problem → research → solve one small piece → verify → step back → reassess → repeat. Early stopping: no progress after 1-2 iterations = stop and escalate. Same as ML training -- if loss plateaus, more epochs won't help.
 
-6. **Adversarial Review -- Always** -- Every output gets challenged by a different agent. The agent that wrote the code never approves it. Find what's wrong, what's hallucinated, what's bullshit.
+7. **Adversarial Review -- Always** -- Every output gets challenged by a different agent. The agent that wrote the code never approves it. Find what's wrong, what's hallucinated, what's bullshit.
 
-7. **Context Engineering** -- Output quality = context quality. Before executing, invest in building the agent's context: research the domain, gather specific facts, construct a specialized prompt. After each attempt, analyze what the agent didn't know, research more, rebuild a better agent. The agent itself evolves, not just the feedback.
+8. **Context Engineering** -- Output quality = context quality. Before executing, invest in building the agent's context: research the domain, gather specific facts, construct a specialized prompt. After each attempt, analyze what the agent didn't know, research more, rebuild a better agent. The agent itself evolves, not just the feedback.
 
-8. **Real-World E2E Testing** -- "What would a real human do to test this?" Automate that. Not mocked unit tests -- real inputs, real systems, real outputs.
+9. **Real-World E2E Testing** -- "What would a real human do to test this?" Automate that. Not mocked unit tests -- real inputs, real systems, real outputs.
 
-When building or modifying workflows, ask: Does this design honor all 8 principles? If not, fix it before proceeding.
+When building or modifying workflows, ask: Does this design honor all 9 principles? If not, fix it before proceeding.
 
 ## Quick reference
 
