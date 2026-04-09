@@ -9,7 +9,7 @@ register_workflow(
     "default",
     build_graph,
     default_config=workflow_config_path(__file__),
-    description="Configurable pipeline with optional critique, test_gen, and verify phases.",
+    description="Full 11-node pipeline: analyze, research, context engineering, per-piece execution, adversarial review, verification, and after-action review.",
 )
 
 __all__ = ["build_graph", "run_workflow"]

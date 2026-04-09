@@ -3,7 +3,18 @@
 import json
 import pytest
 from unittest.mock import patch
-from langgraph_maestro.workflows.default.nodes import decompose_node, execute_node, review_node
+from langgraph_maestro.workflows.default.nodes import decompose_node
+from langgraph_maestro.nodes.execute import make_execute_node
+from langgraph_maestro.nodes.review import make_review_node
+from langgraph_maestro.core.config import workflow_config_path
+from pathlib import Path
+
+_DEFAULT_DIR = Path(__file__).resolve().parent.parent.parent / "src" / "langgraph_maestro" / "workflows" / "default"
+_CONFIG = str(_DEFAULT_DIR / "config.yaml")
+_PROMPTS = str(_DEFAULT_DIR / "prompts")
+
+execute_node = make_execute_node(config_path_default=_CONFIG, prompts_dir=_PROMPTS)
+review_node = make_review_node(config_path_default=_CONFIG, prompts_dir=_PROMPTS)
 
 
 class TestDecomposeNode:
@@ -20,7 +31,7 @@ class TestDecomposeNode:
             "latency": 0.1,
         })
 
-        state = {"task": "Add a new feature", "config_path": "workflows/default/config.yaml"}
+        state = {"task": "Add a new feature"}
         result = decompose_node(state)
 
         assert len(result["subtasks"]) == 2
@@ -30,7 +41,7 @@ class TestDecomposeNode:
     def test_handles_unparseable_response(self, mock_llm):
         mock_llm.append({"content": "not json at all", "model": "mock", "latency": 0.1})
 
-        state = {"task": "Do something", "config_path": "workflows/default/config.yaml"}
+        state = {"task": "Do something"}
         result = decompose_node(state)
 
         assert "errors" in result
@@ -42,7 +53,7 @@ class TestDecomposeNode:
             "latency": 0.1,
         })
 
-        state = {"task": "Do something", "config_path": "workflows/default/config.yaml"}
+        state = {"task": "Do something"}
         result = decompose_node(state)
 
         assert "errors" in result
@@ -124,7 +135,8 @@ class TestExecuteNode:
 
 
 class TestReviewNode:
-    def test_approves_clean_work(self, mock_llm):
+    def test_approves_clean_work(self, mock_llm, tmp_config):
+        path = tmp_config({"phases": {"review": ["mock-model"]}})
         mock_llm.append({
             "content": json.dumps({"verdict": "APPROVE", "issues": [], "summary": "All good"}),
             "model": "mock",
@@ -134,14 +146,15 @@ class TestReviewNode:
         state = {
             "task": "Add feature",
             "subtasks": [{"id": "1-task", "description": "Do it", "status": "complete", "result": {"status": "COMPLETE"}}],
-            "config_path": "workflows/default/config.yaml",
+            "config_path": path,
         }
         result = review_node(state)
 
         assert result["verdict"] == "APPROVE"
         assert result["review_issues"] == []
 
-    def test_rejects_with_issues(self, mock_llm):
+    def test_rejects_with_issues(self, mock_llm, tmp_config):
+        path = tmp_config({"phases": {"review": ["mock-model"]}})
         mock_llm.append({
             "content": json.dumps({
                 "verdict": "REJECT",
@@ -155,20 +168,21 @@ class TestReviewNode:
         state = {
             "task": "Add feature",
             "subtasks": [{"id": "1-task", "description": "Do it", "status": "complete"}],
-            "config_path": "workflows/default/config.yaml",
+            "config_path": path,
         }
         result = review_node(state)
 
         assert result["verdict"] == "REJECT"
         assert len(result["review_issues"]) == 1
 
-    def test_handles_parse_failure(self, mock_llm):
+    def test_handles_parse_failure(self, mock_llm, tmp_config):
+        path = tmp_config({"phases": {"review": ["mock-model"]}})
         mock_llm.append({"content": "not json", "model": "mock", "latency": 0.1})
 
         state = {
             "task": "Add feature",
             "subtasks": [],
-            "config_path": "workflows/default/config.yaml",
+            "config_path": path,
         }
         result = review_node(state)
 

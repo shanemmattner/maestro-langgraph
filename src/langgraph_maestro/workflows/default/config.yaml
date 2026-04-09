@@ -1,50 +1,35 @@
 workflow: default
 
 phases:
+  analyze:
+    - claude-sonnet-4-6
+  research:
+    models:
+      - claude-sonnet-4-6
+    max_queries: 5
+    max_results_per_query: 3
+  build_context:
+    - claude-sonnet-4-6
   decompose:
     - claude-sonnet-4-6
   execute:
     - claude-sonnet-4-6
-  review:
+  piece_review:
     - claude-sonnet-4-6
-  critique:
-    enabled: false
-    models:
-      - claude-sonnet-4-6
-  test_gen:
-    enabled: false
-    models:
-      - claude-sonnet-4-6
+  holistic_review:
+    - claude-sonnet-4-6
+  adversarial:
+    - claude-sonnet-4-6
   verify:
-    enabled: true
+    - claude-sonnet-4-6
+  after_action:
+    - claude-sonnet-4-6
 
 loops:
-  max_critique_rounds: 1
-  max_review_rounds: 2
+  max_piece_retries: 2
   max_replan_rounds: 1
-
-escalation:
-  enabled: false
-  confidence_threshold: 0.3
-
-skills:
-  model_overlays:
-    minimax: |
-      You must return valid JSON without markdown fences.
-      Do not add preamble or commentary — JSON only.
-
-prompt_engineering:
-  enabled: true
-  model: claude-sonnet-4-6
-  phases:
-    decompose:
-      enabled: true
-    execute:
-      enabled: true
-    review:
-      enabled: true
-  timeout: 120
-  fallback_to_raw: true
+  max_holistic_rounds: 1
+  max_adversarial_rounds: 1
 
 timeouts:
   default: 300
@@ -54,3 +39,27 @@ timeouts:
   stall:
     no_progress_threshold: 3
     loop_detection_window: 5
+
+hitl:
+  analyze: false    # Interrupt on ambiguities
+  plan: false       # Interrupt for plan approval
+
+escalation:
+  enabled: true
+
+prompt_engineering:
+  enabled: true
+  model: claude-sonnet-4-6
+  phases:
+    decompose:
+      enabled: true
+    execute:
+      enabled: true
+  timeout: 120
+  fallback_to_raw: true
+
+skills:
+  model_overlays:
+    minimax: |
+      You must return valid JSON without markdown fences.
+      Do not add preamble or commentary — JSON only.
