@@ -4,85 +4,72 @@ Multi-agent LLM workflow orchestration framework built on [LangGraph](https://gi
 
 ## Principles
 
-### 1. LLM-First Development
-Everything in this framework is built by LLMs and for LLMs. Every design decision must consider: "Can an LLM understand this?"
+### 1. Start Simple
+Don't build an 11-node graph on day one. Start with a single agent, a clear task, and a ground truth file. Add decomposition when tasks are too big. Add adversarial review when outputs aren't trustworthy. Add context engineering when agents keep missing domain knowledge. Every node in the graph must earn its place by solving a problem that simpler approaches couldn't. The principles describe where you're going, not where you start.
 
-- **Semantic naming**: Function names are documentation. `validate_uart_packet_checksum()` not `check()`. An LLM reads the name and knows what it does.
-- **Structured, readable logs**: Logs must contain enough context that an LLM reading them can understand what happened without seeing the source code. Include inputs, outputs, decisions, and deltas.
-- **Diagnostic error messages**: Not `Error: failed` but `Error: UART checksum mismatch — expected 0x4A, got 0x3F at byte offset 127. Likely cause: baud rate mismatch.`
-- **Self-documenting file structure**: An LLM should understand the codebase from the directory tree alone.
-- **Comments explain WHY, not what**: The LLM can read the code — tell it why you made this choice, what alternatives you rejected, what constraints drove the decision.
-- **Semantic sentinels**: Named constants, typed return values, descriptive variable names. Every symbol an LLM encounters should carry meaning.
+### 2. One Agent, One Prompt, One Task
+Each agent gets a single, focused job. No sprawling mega-prompts that plan, execute, review, and fix in one shot. LangGraph's value is decomposition: each node does one thing well, the graph handles orchestration. If a node is doing two things, split it into two nodes. No overlapping responsibilities between agents.
 
-### 2. Quality Over Everything
-If you can't trust the output, it's worthless -- you need human effort to verify it anyway, which defeats the purpose. Every design decision prioritizes correctness over speed. A slow, verified result beats a fast, wrong one. If a workflow can't prove it succeeded, it hasn't.
+### 3. Closed-Loop Quality
+Every output is verified against ground truth or evaluation criteria. Correctness over speed, always. A workflow that can't prove it succeeded hasn't.
 
-### 3. Never Guess -- Always Look Up, Always Cite Sources
-LLMs must never rely on training data for verifiable facts. If there's documentation, read it. If there's an API spec, fetch it. If there's a web page with the answer, search and scrape it. The self-hosted SearXNG + Crawl4AI stack exists for exactly this -- every agent can search the web and verify claims at zero cost. Memory is for reasoning, not for facts.
-
-Every agent should actively search for evidence to support its approach. Not "I think this is correct" but "according to [source], this is the documented way to do it." When an agent chooses an implementation pattern, it should find proof that the pattern works -- a docs page, a Stack Overflow answer, a GitHub example. If it can't find evidence, that's a signal the approach might be wrong.
-
-Search is free and local (SearXNG + Crawl4AI), so prefer re-searching over assuming. Future optimization: cache research results to avoid redundant lookups across agents working on the same problem.
-
-### 4. One Agent, One Prompt, One Task
-Each agent gets a single, focused job. No sprawling mega-prompts that plan, execute, review, and fix in one shot. LangGraph's value is decomposition: each node does one thing well, the graph handles orchestration. If a node is doing two things, split it into two nodes.
-
-### 5. Closed-Loop Feedback
-Every action needs observable, measurable feedback. No single-shot "here's my answer" workflows.
-
-- **Ground truth / reference files**: The agent needs something to compare against. A KiCad schematic, a UART byte stream, expected test output, an acceptance criteria doc -- whatever "correct" looks like for this task.
+- **Ground truth / reference files**: The agent needs something to compare against -- a KiCad schematic, a UART byte stream, expected test output, an acceptance criteria doc. Whatever "correct" looks like for this task.
   - *Ideal*: User provides ground truth alongside the task
   - *Acceptable*: Agent generates its own test/criteria first (TDD style)
   - *Last resort*: Agent stops and asks the human rather than producing unverifiable output
-- **Logs are the agent's eyes**: Every LLM call, tool invocation, decision point, and iteration delta gets logged. If the agent can't see it in the logs, it can't learn from it. Logging is not an afterthought -- it's the primary feedback mechanism.
-- **Tests as verification**: Not "I think this works" -- run it, measure it, compare the output to the reference. Real execution, real results.
+- **Execute, observe, compare, adjust**: No single-shot "here's my answer" workflows. Every action needs measurable feedback. Iterate in small pieces -- assess the whole problem, solve one piece, verify, step back, reassess, repeat.
+- **Early stopping**: If no measurable progress after 1-2 iterations, stop. Escalate to a human, try a different approach, or declare the task blocked. If the loss plateaus, more epochs won't help.
+- **Replace manual testing**: Ask "what would a real human do to test this?" and automate that. Real inputs, real systems, real outputs. The test must be trustworthy enough that you don't need to manually verify after.
 
 **The user has a role here too.** They may need to provide reference files, install testing tools, or define what "real success" looks like. Workflows should be explicit about what they need from the user to close the loop.
 
-### 6. Iterative, Not Waterfall
-Work like a real engineer: look at the whole problem, research what you don't know, solve one small piece, verify it, step back, reassess, repeat.
+### 4. Never Guess -- Always Look Up, Always Cite Sources
+LLMs must never rely on training data for verifiable facts. If there's documentation, read it. If there's an API spec, fetch it. If there's a web page with the answer, search and scrape it. The self-hosted SearXNG + Crawl4AI stack exists for exactly this -- every agent can search the web and verify claims at zero cost. Memory is for reasoning, not for facts.
 
-Each iteration:
-1. Assess the full problem (not just the current subtask)
-2. Research what you need (docs, web, existing code)
-3. Solve one small, testable piece
-4. Verify it against the ground truth
-5. Step back, look at the whole picture again, repeat
+Every agent should actively search for evidence to support its approach. Not "I think this is correct" but "according to [source], this is the documented way to do it." Structure output so verification is trivial -- immediately validatable, not just asserted. If an agent can't find evidence, that's a signal the approach might be wrong.
 
-**Early stopping**: If no measurable progress after 1-2 iterations, stop. Don't keep grinding -- either escalate to a human, try a completely different approach, or declare the task blocked. Same principle as ML training: if the loss plateaus, more epochs won't help.
+### 5. Design for LLM Consumption
+Everything in this framework is built by LLMs and for LLMs. Every interface is designed for LLM callers first, human readers second.
+
+- **Semantic naming**: Function names are documentation. `validate_uart_packet_checksum()` not `check()`. An LLM reads the name and knows what it does.
+- **Structured errors with suggested fixes**: Not `Error: failed` but `Error: UART checksum mismatch — expected 0x4A, got 0x3F at byte offset 127. Likely cause: baud rate mismatch.`
+- **Self-documenting tool schemas**: Descriptive parameter names, unambiguous descriptions, minimal required context. An LLM should be able to use a tool correctly from its schema alone.
+- **Self-documenting file structure**: An LLM should understand the codebase from the directory tree alone.
+- **Comments explain WHY, not what**: The LLM can read the code — tell it why you made this choice, what alternatives you rejected, what constraints drove the decision.
+
+### 6. Context Engineering
+Output quality = context quality. A mediocre model with perfect context beats a great model with vague context. Fill the context window with just the right information for the next step.
+
+Four strategies:
+1. **Write context**: Scratchpads, external memory, state files that persist across context boundaries
+2. **Select context**: Just-in-time retrieval -- search the web, read docs, pull in only what's relevant for *this* step
+3. **Compress context**: Summarize long conversations, drop irrelevant history, keep the signal-to-noise ratio high
+4. **Isolate context**: Token-heavy operations go to sub-agents with focused context windows, not the main orchestrator
+
+After each attempt, analyze what the agent didn't know. Research more, rebuild a *better* agent with the gaps filled. The agent itself evolves across iterations, not just the feedback it receives. The "research and build agent" step is where most of the intelligence lives.
 
 ### 7. Adversarial Review -- Always
-Every output gets challenged by a different agent whose job is to find what's wrong, what's hallucinated, what's bullshit. This isn't an optional "nice to have" review phase. It's built into the loop. The agent that wrote the code never approves it.
+Every critical output gets challenged by a different agent with a different prompt (and ideally a different model). The agent that wrote the code never approves it. Find what's wrong, what's hallucinated, what's bullshit. This isn't an optional "nice to have" review phase -- it's built into the loop. Use LLM-as-Judge patterns and golden response comparisons where appropriate.
 
-### 8. Context Engineering
-The quality of the output is directly proportional to the quality of the context. A mediocre model with perfect context beats a great model with vague context.
-
-Before any agent executes, invest in building its context:
-1. **Research phase**: Search the web, read docs, find prior art, gather domain-specific knowledge
-2. **Build a specialized agent**: Construct a system prompt with all relevant context baked in -- not generic instructions, but specific facts, constraints, and examples for *this* problem
-3. **Review and rebuild**: After the first attempt, analyze what the agent didn't know. Research more, build a *better* agent with the gaps filled. The agent itself evolves across iterations, not just the feedback it receives.
-
-This means the "research and build agent" step is where most of the intelligence lives. Execution is almost mechanical once the context is right.
-
-### 9. Self-Improving Workflows
+### 8. Self-Improving Workflows
 Workflows are not static. Every run is an opportunity to improve the system:
 
-- **After-action review**: What worked? What failed? What context was missing? Capture learnings.
-- **Build deterministic tools**: If an LLM keeps doing the same analysis, write a Python script. If it keeps searching for the same docs, cache them. Every repeated LLM call is a candidate for a reliable, deterministic replacement. Build up a growing library of tools -- Python scripts, bash utilities, background daemons -- that agents can call.
-- **Curate tools per agent**: Don't give every agent every tool. The planner selects the specific tools each agent needs for its task. Customized context + curated tools = a specialized agent that's far more reliable than a generic one with access to everything.
+- **Extract deterministic tools**: When an LLM consistently produces the same transformation, write a Python script. Every repeated LLM call is a candidate for a reliable, deterministic replacement.
+- **Curate tools per agent**: Don't give every agent every tool. The planner selects the specific tools each agent needs. Fewer, better tools outperform large toolboxes. Track tool usage and success rates.
 - **Specialize agents over time**: Generic agents become domain experts. Research results become baked-in context. One-off prompts become battle-tested templates.
-- **Evolve the graph itself**: Add new nodes, remove ineffective ones, change routing logic based on what actually works. The workflow that runs on day 30 should be fundamentally better than day 1.
+- **Evolve the graph itself**: Add new nodes, remove ineffective ones, change routing logic based on what actually works.
 
-The goal: LLMs handle novel reasoning, deterministic tools handle everything else. Over time, more work shifts from LLM to tool. The tool library grows, agent specialization deepens, and the system gets more reliable with each run.
+The goal: LLMs handle novel reasoning, deterministic tools handle everything else. The system gets faster, cheaper, and more reliable with each run.
 
-### 10. Start Simple, Add Complexity When Proven Necessary
-Don't build an 11-node graph on day one. Start with a single agent, a clear task, and a ground truth file. Add decomposition when tasks are too big. Add adversarial review when outputs aren't trustworthy. Add context engineering when agents keep missing domain knowledge. Every node in the graph must earn its place by solving a problem that simpler approaches couldn't. The principles describe where you're going, not where you start.
-
-### 11. Human-in-the-Loop Is a Feature, Not a Failure
+### 9. Human-in-the-Loop Is a Feature
 The system should know when to stop and ask. When confidence is low, when verification fails, when the task is ambiguous -- pause, checkpoint state, and ask the human. This is not a failure mode. It's the most reliable path to quality. LangGraph's `interrupt()` with SQLite checkpointing makes this a first-class capability: the workflow pauses, the human provides input, and the workflow resumes exactly where it left off.
 
-### 12. Real-World E2E Testing
-Ask: "What would a real human user do to test this?" Then automate that. The goal is to replace manual human testing entirely -- the automated test must be trustworthy enough that you don't need to manually verify after. Not mocked unit tests on fake data -- real inputs through the real system producing real outputs. When you can't fully automate it, be explicit about what the user needs to help set up.
+### 10. Observe Everything
+Every LLM call, tool invocation, state transition, and cost is traced with structured logs and correlation IDs across the full graph. If you can't see what happened, you can't fix what broke. Observability is not optional infrastructure -- it's how you debug non-deterministic systems.
+
+- **Structured logs**: Logs must contain enough context that an LLM reading them can understand what happened without seeing the source code. Include inputs, outputs, decisions, and deltas.
+- **Token and cost tracking**: Track per-step token usage and costs. Set budget guardrails per run and per day. Agents make 3-10x more LLM calls than chatbots -- costs compound with retries, adversarial review, and closed-loop iteration.
+- **OTel tracing**: Every prompt, response, token count, and latency is recorded via OpenTelemetry with GenAI semantic conventions. Langfuse for trace replay, Grafana for dashboards, Prometheus for metrics.
 
 ## Features
 

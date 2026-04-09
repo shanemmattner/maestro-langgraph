@@ -4,37 +4,29 @@ Multi-agent LLM workflow orchestration framework built on LangGraph. Provides a 
 
 ## Core Principles
 
-These principles govern every workflow, every agent, and every design decision in this framework. They are non-negotiable.
+These 10 principles govern every workflow, every agent, and every design decision in this framework. They are non-negotiable.
 
-1. **LLM-First Development** -- Everything is built by LLMs and for LLMs. Semantic function names (`validate_uart_checksum()` not `check()`), structured logs with full context, diagnostic error messages, self-documenting file structure, comments that explain WHY not what. Every symbol carries meaning. An LLM should understand the codebase from the directory tree alone.
+1. **Start Simple** -- Don't build an 11-node graph on day one. Start with one agent, one task, one ground truth. Add complexity only when simpler approaches fail. Every node must earn its place.
 
-2. **Quality Over Everything** -- If the output can't be trusted, it's worthless. Correctness over speed, always. A workflow that can't prove it succeeded hasn't.
+2. **One Agent, One Prompt, One Task** -- Each node does one focused job. If it's doing two things, split it. The graph handles orchestration. No overlapping responsibilities between agents.
 
-3. **Never Guess -- Always Look Up, Always Cite Sources** -- Never rely on LLM training data for verifiable facts. Search the web (`web_search()`), read docs (`web_scrape()`), check the actual source. Memory is for reasoning, not facts. Every agent must find evidence for its approach -- "according to [source]" not "I think." If you can't find evidence, the approach might be wrong.
+3. **Closed-Loop Quality** -- Every output is verified against ground truth. Execute, observe, compare, adjust. Correctness over speed, always. No single-shot workflows. Early stopping when iteration isn't converging. Replace manual testing with automated E2E evaluation -- real inputs, real systems, real outputs.
 
-4. **One Agent, One Prompt, One Task** -- Each node does one focused job. If it's doing two things, split it. The graph handles orchestration. Models do better when limited to one thing with excellent context about that one thing.
+4. **Never Guess -- Always Look Up, Always Cite Sources** -- Never rely on LLM training data for verifiable facts. Search the web (`web_search()`), read docs (`web_scrape()`), check the actual source. Memory is for reasoning, not facts. Every agent must find and cite evidence -- "according to [source]" not "I think."
 
-5. **Closed-Loop Feedback** -- Every action needs measurable feedback:
-   - Ground truth / reference files to compare against (user-provided ideal, LLM-generated acceptable, stop-and-ask last resort)
-   - Logs as the primary feedback mechanism -- if the agent can't see it, it can't learn from it
-   - Tests that run against real systems and produce measurable results
-   - The user may need to help set up testing infrastructure
+5. **Design for LLM Consumption** -- Every interface is designed for LLM callers first. Semantic naming (`validate_uart_checksum()` not `check()`), structured errors with suggested fixes, self-documenting tool schemas and file structure, comments that explain WHY not what.
 
-6. **Iterative, Not Waterfall** -- Assess the whole problem → research → solve one small piece → verify → step back → reassess → repeat. Early stopping: no progress after 1-2 iterations = stop and escalate. Same as ML training -- if loss plateaus, more epochs won't help.
+6. **Context Engineering** -- Output quality = context quality. Four strategies: write (scratchpads, external memory), select (just-in-time retrieval), compress (summarize, drop irrelevant history), isolate (sub-agents with focused context). Rebuild agent prompts after failures with better context.
 
-7. **Adversarial Review -- Always** -- Every output gets challenged by a different agent. The agent that wrote the code never approves it. Find what's wrong, what's hallucinated, what's bullshit.
+7. **Adversarial Review -- Always** -- Every critical output gets challenged by a different agent with a different prompt. The agent that wrote the code never approves it. Find what's wrong, what's hallucinated, what's bullshit.
 
-8. **Context Engineering** -- Output quality = context quality. Before executing, invest in building the agent's context: research the domain, gather specific facts, construct a specialized prompt. After each attempt, analyze what the agent didn't know, research more, rebuild a better agent. The agent itself evolves, not just the feedback.
+8. **Self-Improving Workflows** -- When an LLM consistently produces the same transformation, extract it into a deterministic tool. Track tool success rates. Curate tool sets per agent -- fewer, better tools outperform large toolboxes. The system gets faster, cheaper, and more reliable with each run.
 
-9. **Self-Improving Workflows** -- Workflows are not static. After every run: review what worked, what failed, what context was missing. Build deterministic tools (Python scripts, bash, daemons) to replace repeated LLM calls. Grow a tool library and curate which tools each agent gets -- customized context + curated tools = specialized agents. LLMs handle novel reasoning; deterministic tools handle everything else. The system gets more reliable with each run.
+9. **Human-in-the-Loop Is a Feature** -- The system knows when to stop and ask. Low confidence, failed verification, ambiguous task → pause, checkpoint, ask the human. This is the most reliable path to quality, not a failure mode.
 
-10. **Start Simple** -- Don't build an 11-node graph on day one. Start with one agent, one task, one ground truth. Add complexity only when simpler approaches fail. Every node must earn its place.
+10. **Observe Everything** -- Every LLM call, tool invocation, state transition, and cost is traced with structured logs and correlation IDs. Track token usage and costs per step. Set budget guardrails. If you can't see what happened, you can't fix what broke.
 
-11. **Human-in-the-Loop Is a Feature** -- The system should know when to stop and ask. Low confidence, failed verification, ambiguous task → pause, checkpoint, ask the human. This is the most reliable path to quality, not a failure mode.
-
-12. **Real-World E2E Testing** -- "What would a real human do to test this?" Automate that. Not mocked unit tests -- real inputs, real systems, real outputs. The test must be trustworthy enough to replace manual verification.
-
-When building or modifying workflows, ask: Does this design honor all 12 principles? If not, fix it before proceeding.
+When building or modifying workflows, ask: Does this design honor all 10 principles? If not, fix it before proceeding.
 
 ## Quick reference
 
