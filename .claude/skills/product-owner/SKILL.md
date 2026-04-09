@@ -69,8 +69,10 @@ These are non-negotiable. Every design decision must honor all of them.
 ### 9. Self-Improving Workflows
 - Workflows are not static -- they evolve by design
 - After every run: what worked, what failed, what was missing?
-- Build deterministic tools (Python, bash, cached data) to replace repeated LLM calls
-- Every repeated LLM call is a candidate for a reliable deterministic replacement
+- Build deterministic tools (Python, bash, daemons) to replace repeated LLM calls
+- Grow a tool library over time -- each tool is a problem the LLM no longer needs to solve
+- Curate tools per agent: don't give every agent every tool. The planner picks the specific tools each agent needs.
+- Customized context + curated tools = specialized agent >> generic agent with everything
 - Specialize agents over time: generic → domain expert with baked-in context
 - Evolve the graph itself: add nodes, remove ineffective ones, change routing
 - Goal: LLMs handle novel reasoning, deterministic tools handle everything else

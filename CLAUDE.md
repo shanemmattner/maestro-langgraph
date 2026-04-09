@@ -26,7 +26,7 @@ These principles govern every workflow, every agent, and every design decision i
 
 8. **Context Engineering** -- Output quality = context quality. Before executing, invest in building the agent's context: research the domain, gather specific facts, construct a specialized prompt. After each attempt, analyze what the agent didn't know, research more, rebuild a better agent. The agent itself evolves, not just the feedback.
 
-9. **Self-Improving Workflows** -- Workflows are not static. After every run: review what worked, what failed, what context was missing. Build deterministic tools (Python scripts, bash, cached data) to replace repeated LLM calls. Specialize agents over time. Evolve the graph itself. LLMs handle novel reasoning; deterministic tools handle everything else.
+9. **Self-Improving Workflows** -- Workflows are not static. After every run: review what worked, what failed, what context was missing. Build deterministic tools (Python scripts, bash, daemons) to replace repeated LLM calls. Grow a tool library and curate which tools each agent gets -- customized context + curated tools = specialized agents. LLMs handle novel reasoning; deterministic tools handle everything else. The system gets more reliable with each run.
 
 10. **Real-World E2E Testing** -- "What would a real human do to test this?" Automate that. Not mocked unit tests -- real inputs, real systems, real outputs. The test must be trustworthy enough to replace manual verification.
 
