@@ -80,14 +80,16 @@ class TestDecomposeNode:
         assert result["phase"] == "decompose"
         assert result["subtasks"][0]["status"] == "pending"
 
-    def test_returns_error_on_parse_failure(self, mock_llm):
-        for _ in range(4):
-            mock_llm.append({"content": "garbage", "model": "mock", "latency": 0.1})
+    def test_returns_empty_subtasks_on_parse_failure(self, mock_llm):
+        """With text-based parsing, unparseable responses yield empty subtasks
+        (no 'errors' key) after extract_json and rescue_json both fail."""
+        mock_llm.append({"content": "garbage", "model": "mock", "latency": 0.1})
 
-        state = {"task": "Fix bug", "config_path": "workflows/issue_to_pr/config.yaml"}
-        result = decompose_node(state)
+        with patch("langgraph_maestro.nodes.decompose.rescue_json", return_value=None):
+            state = {"task": "Fix bug", "config_path": "workflows/issue_to_pr/config.yaml"}
+            result = decompose_node(state)
 
-        assert "errors" in result
+        assert result["subtasks"] == []
         assert result["phase"] == "decompose"
 
 

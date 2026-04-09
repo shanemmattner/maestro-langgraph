@@ -12,7 +12,6 @@ import tempfile
 from langgraph_maestro.nodes import make_decompose_node, make_execute_node, make_review_node
 from langgraph_maestro.nodes.fetch_issue import make_fetch_issue_node
 from langgraph_maestro.nodes.commit_pr import make_commit_pr_node
-from langgraph_maestro.core.schemas import DecomposeOutput
 from .state import IssueToPRState
 from langgraph_maestro.core.config import workflow_config_path
 from pathlib import Path
@@ -53,7 +52,6 @@ def _cleanup_worktree(repo_path: str, worktree_path: str) -> None:
 
 decompose_node = make_decompose_node(
     config_path_default=workflow_config_path(__file__),
-    schema_class=DecomposeOutput,
     prompts_dir=str(Path(__file__).parent / "prompts"),
 )
 

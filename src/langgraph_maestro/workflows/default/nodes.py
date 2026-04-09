@@ -11,7 +11,6 @@ Node functions follow these conventions:
 
 import json
 import logging
-import os
 import time
 from pathlib import Path
 from typing import Any, Dict, List
@@ -28,18 +27,7 @@ from langgraph_maestro.core.llm import (
     extract_json,
     rescue_json,
 )
-from langgraph_maestro.core.schemas import (
-    DecomposeOutput,
-    TaskAnalysisOutput,
-    ContextEngineeringOutput,
-    PieceReviewOutput,
-    HolisticReviewOutput,
-    AdversarialReviewOutput,
-    VerificationOutput,
-    AAROutput,
-)
 from langgraph_maestro.core.stall import StallDetector
-from langgraph_maestro.core.structured import call_llm_structured
 from langgraph_maestro.core.web import (
     is_search_available,
     search_and_extract,
@@ -83,7 +71,7 @@ def _safe_get_models(phase: str, config: dict) -> List[str]:
 
 def analyze_task_node(state: dict) -> dict:
     """Analyze the task to extract type, success criteria, ambiguities, and
-    search queries.  Uses call_llm_structured with TaskAnalysisOutput."""
+    search queries.  Uses call_llm_with_fallback with TaskAnalysisOutput."""
     start = time.time()
     task = state.get("task", "")
     cwd = state.get("cwd") or state.get("repo_path")
@@ -107,10 +95,9 @@ def analyze_task_node(state: dict) -> dict:
     prompt = template.replace("{task}", task)
 
     try:
-        output = call_llm_structured(
+        response = call_llm_with_fallback(
             prompt=prompt,
             models=models,
-            response_model=TaskAnalysisOutput,
             phase="analyze",
             config=config,
             cwd=cwd,
@@ -123,23 +110,33 @@ def analyze_task_node(state: dict) -> dict:
             "phase": "analyze",
         }
 
+    parsed = extract_json(response.get("content", ""))
+    if parsed is None:
+        parsed = rescue_json(response.get("content", "")) or {}
+
+    task_type = parsed.get("task_type", "code_change")
+    success_criteria = parsed.get("success_criteria", [])
+    ambiguities = parsed.get("ambiguities", [])
+    search_queries = parsed.get("search_queries", [])
+    relevant_file_patterns = parsed.get("relevant_file_patterns", [])
+
     elapsed = round(time.time() - start, 3)
     logger.info(
         "analyze_task_done",
         extra={
-            "task_type": output.task_type,
-            "num_criteria": len(output.success_criteria),
-            "num_queries": len(output.search_queries),
+            "task_type": task_type,
+            "num_criteria": len(success_criteria),
+            "num_queries": len(search_queries),
             "elapsed": elapsed,
         },
     )
 
     return {
-        "task_type": output.task_type,
-        "success_criteria": output.success_criteria,
-        "ambiguities": output.ambiguities,
-        "search_queries": output.search_queries,
-        "relevant_file_patterns": output.relevant_file_patterns,
+        "task_type": task_type,
+        "success_criteria": success_criteria,
+        "ambiguities": ambiguities,
+        "search_queries": search_queries,
+        "relevant_file_patterns": relevant_file_patterns,
         "phase": "analyze",
     }
 
@@ -213,7 +210,7 @@ def research_node(state: dict) -> dict:
 
 def build_context_node(state: dict) -> dict:
     """Synthesize research findings into structured domain context using
-    call_llm_structured with ContextEngineeringOutput."""
+    call_llm_with_fallback with ContextEngineeringOutput."""
     start = time.time()
     task = state.get("task", "")
     domain_research = state.get("domain_research", [])
@@ -245,10 +242,9 @@ def build_context_node(state: dict) -> dict:
     prompt = template.replace("{task}", task).replace("{research}", research_text)
 
     try:
-        output = call_llm_structured(
+        response = call_llm_with_fallback(
             prompt=prompt,
             models=models,
-            response_model=ContextEngineeringOutput,
             phase="context",
             config=config,
             cwd=cwd,
@@ -266,11 +262,21 @@ def build_context_node(state: dict) -> dict:
             "phase": "context",
         }
 
+    parsed = extract_json(response.get("content", ""))
+    if parsed is None:
+        parsed = rescue_json(response.get("content", "")) or {}
+
+    domain_summary = parsed.get("domain_summary", "")
+    key_constraints = parsed.get("key_constraints", [])
+    recommended_approach = parsed.get("recommended_approach", "")
+    citations = parsed.get("citations", [])
+    tool_assignments = parsed.get("tool_assignments", {})
+
     domain_context = (
-        f"{output.domain_summary}\n\n"
+        f"{domain_summary}\n\n"
         f"Key constraints:\n"
-        + "\n".join(f"- {c}" for c in output.key_constraints)
-        + f"\n\nRecommended approach:\n{output.recommended_approach}"
+        + "\n".join(f"- {c}" for c in key_constraints)
+        + f"\n\nRecommended approach:\n{recommended_approach}"
     )
 
     elapsed = round(time.time() - start, 3)
@@ -278,17 +284,17 @@ def build_context_node(state: dict) -> dict:
         "build_context_done",
         extra={
             "context_len": len(domain_context),
-            "num_constraints": len(output.key_constraints),
-            "num_citations": len(output.citations),
+            "num_constraints": len(key_constraints),
+            "num_citations": len(citations),
             "elapsed": elapsed,
         },
     )
 
     return {
         "domain_context": domain_context,
-        "key_constraints": output.key_constraints,
-        "citations": output.citations,
-        "tool_recommendations": output.tool_assignments,
+        "key_constraints": key_constraints,
+        "citations": citations,
+        "tool_recommendations": tool_assignments,
         "phase": "context",
     }
 
@@ -299,7 +305,6 @@ def build_context_node(state: dict) -> dict:
 
 decompose_node = make_decompose_node(
     config_path_default=_CONFIG,
-    schema_class=DecomposeOutput,
     prompts_dir=_PROMPTS,
 )
 
@@ -632,7 +637,7 @@ def execute_piece_node(state: dict) -> dict:
 
 def piece_review_node(state: dict) -> dict:
     """Review the current subtask result against its acceptance criteria.
-    Uses call_llm_structured with PieceReviewOutput."""
+    Uses call_llm_with_fallback with PieceReviewOutput."""
     start = time.time()
     subtasks = state.get("subtasks", [])
     idx = state.get("current_subtask_index", 0)
@@ -673,10 +678,9 @@ def piece_review_node(state: dict) -> dict:
     )
 
     try:
-        output = call_llm_structured(
+        response = call_llm_with_fallback(
             prompt=prompt,
             models=models,
-            response_model=PieceReviewOutput,
             phase="review",
             config=config,
             cwd=cwd,
@@ -691,6 +695,17 @@ def piece_review_node(state: dict) -> dict:
             "phase": "piece_review",
         }
 
+    parsed = extract_json(response.get("content", ""))
+    if parsed is None:
+        parsed = rescue_json(response.get("content", "")) or {}
+
+    verdict = parsed.get("verdict", "REJECT")
+    if verdict not in ("APPROVE", "NITS", "REJECT"):
+        verdict = "REJECT"
+    issues = parsed.get("issues", [])
+    criteria_met = parsed.get("criteria_met", [])
+    criteria_unmet = parsed.get("criteria_unmet", [])
+
     piece_review_rounds = state.get("piece_review_rounds", 0) + 1
 
     elapsed = round(time.time() - start, 3)
@@ -698,18 +713,18 @@ def piece_review_node(state: dict) -> dict:
         "piece_review_done",
         extra={
             "subtask_id": subtask.get("id"),
-            "verdict": output.verdict,
-            "num_issues": len(output.issues),
+            "verdict": verdict,
+            "num_issues": len(issues),
             "round": piece_review_rounds,
             "elapsed": elapsed,
         },
     )
 
     return {
-        "piece_verdict": output.verdict,
-        "piece_review_issues": output.issues,
-        "piece_criteria_met": output.criteria_met,
-        "piece_criteria_unmet": output.criteria_unmet,
+        "piece_verdict": verdict,
+        "piece_review_issues": issues,
+        "piece_criteria_met": criteria_met,
+        "piece_criteria_unmet": criteria_unmet,
         "piece_review_rounds": piece_review_rounds,
         "phase": "piece_review",
     }
@@ -721,7 +736,7 @@ def piece_review_node(state: dict) -> dict:
 
 def holistic_review_node(state: dict) -> dict:
     """Review all completed subtasks together for integration issues.
-    Uses call_llm_structured with HolisticReviewOutput."""
+    Uses call_llm_with_fallback with HolisticReviewOutput."""
     start = time.time()
     task = state.get("task", "")
     subtasks = state.get("subtasks", [])
@@ -767,10 +782,9 @@ def holistic_review_node(state: dict) -> dict:
     )
 
     try:
-        output = call_llm_structured(
+        response = call_llm_with_fallback(
             prompt=prompt,
             models=models,
-            response_model=HolisticReviewOutput,
             phase="review",
             config=config,
             cwd=cwd,
@@ -789,22 +803,33 @@ def holistic_review_node(state: dict) -> dict:
             "phase": "holistic_review",
         }
 
+    parsed = extract_json(response.get("content", ""))
+    if parsed is None:
+        parsed = rescue_json(response.get("content", "")) or {}
+
+    verdict = parsed.get("verdict", "REJECT")
+    if verdict not in ("APPROVE", "REJECT"):
+        verdict = "REJECT"
+    integration_issues = parsed.get("integration_issues", [])
+    coverage_gaps = parsed.get("coverage_gaps", [])
+    consistency_issues = parsed.get("consistency_issues", [])
+
     elapsed = round(time.time() - start, 3)
     logger.info(
         "holistic_review_done",
         extra={
-            "verdict": output.verdict,
-            "num_integration_issues": len(output.integration_issues),
-            "num_coverage_gaps": len(output.coverage_gaps),
+            "verdict": verdict,
+            "num_integration_issues": len(integration_issues),
+            "num_coverage_gaps": len(coverage_gaps),
             "elapsed": elapsed,
         },
     )
 
     return {
-        "holistic_verdict": output.verdict,
-        "integration_issues": output.integration_issues,
-        "coverage_gaps": output.coverage_gaps,
-        "consistency_issues": output.consistency_issues,
+        "holistic_verdict": verdict,
+        "integration_issues": integration_issues,
+        "coverage_gaps": coverage_gaps,
+        "consistency_issues": consistency_issues,
         "phase": "holistic_review",
     }
 
@@ -816,7 +841,7 @@ def holistic_review_node(state: dict) -> dict:
 def adversarial_review_node(state: dict) -> dict:
     """Hostile adversarial review — checks for hallucinations, logic errors,
     miscited sources.  Uses a deliberately aggressive system prompt and
-    call_llm_structured with AdversarialReviewOutput."""
+    call_llm_with_fallback with AdversarialReviewOutput."""
     start = time.time()
     task = state.get("task", "")
     subtasks = state.get("subtasks", [])
@@ -865,10 +890,9 @@ def adversarial_review_node(state: dict) -> dict:
     )
 
     try:
-        output = call_llm_structured(
+        response = call_llm_with_fallback(
             prompt=prompt,
             models=models,
-            response_model=AdversarialReviewOutput,
             phase="adversarial",
             config=config,
             cwd=cwd,
@@ -884,23 +908,36 @@ def adversarial_review_node(state: dict) -> dict:
             "phase": "adversarial_review",
         }
 
-    findings = [f.model_dump() for f in output.findings]
+    parsed = extract_json(response.get("content", ""))
+    if parsed is None:
+        parsed = rescue_json(response.get("content", "")) or {}
+
+    verdict = parsed.get("verdict", "FAIL")
+    if verdict not in ("PASS", "FAIL"):
+        verdict = "FAIL"
+    findings = parsed.get("findings", [])
+    if not isinstance(findings, list):
+        findings = []
+    # Ensure findings are dicts
+    findings = [f if isinstance(f, dict) else {"finding": str(f)} for f in findings]
+    summary = parsed.get("summary", response.get("content", "")[:500])
+    num_hallucinations = sum(1 for f in findings if f.get("is_hallucination"))
 
     elapsed = round(time.time() - start, 3)
     logger.info(
         "adversarial_review_done",
         extra={
-            "verdict": output.verdict,
+            "verdict": verdict,
             "num_findings": len(findings),
-            "num_hallucinations": sum(1 for f in output.findings if f.is_hallucination),
+            "num_hallucinations": num_hallucinations,
             "elapsed": elapsed,
         },
     )
 
     return {
-        "adversarial_verdict": output.verdict,
+        "adversarial_verdict": verdict,
         "adversarial_findings": findings,
-        "adversarial_summary": output.summary,
+        "adversarial_summary": summary,
         "phase": "adversarial_review",
     }
 
@@ -910,7 +947,7 @@ def adversarial_review_node(state: dict) -> dict:
 # ---------------------------------------------------------------------------
 
 def verify_node(state: dict) -> dict:
-    """Verify each success criterion with evidence.  Uses call_llm_structured
+    """Verify each success criterion with evidence.  Uses call_llm_with_fallback
     with VerificationOutput."""
     start = time.time()
     task = state.get("task", "")
@@ -950,10 +987,9 @@ def verify_node(state: dict) -> dict:
     )
 
     try:
-        output = call_llm_structured(
+        response = call_llm_with_fallback(
             prompt=prompt,
             models=models,
-            response_model=VerificationOutput,
             phase="verify",
             config=config,
             cwd=cwd,
@@ -972,14 +1008,26 @@ def verify_node(state: dict) -> dict:
             "phase": "verify",
         }
 
-    results = [r.model_dump() for r in output.results]
-    passed_count = sum(1 for r in output.results if r.passed)
+    parsed = extract_json(response.get("content", ""))
+    if parsed is None:
+        parsed = rescue_json(response.get("content", "")) or {}
+
+    verdict = parsed.get("verdict", "FAIL")
+    if verdict not in ("PASS", "PARTIAL", "FAIL"):
+        verdict = "FAIL"
+    results = parsed.get("results", [])
+    if not isinstance(results, list):
+        results = []
+    # Ensure results are dicts
+    results = [r if isinstance(r, dict) else {"criterion": str(r)} for r in results]
+    summary = parsed.get("summary", response.get("content", "")[:500])
+    passed_count = sum(1 for r in results if r.get("passed"))
 
     elapsed = round(time.time() - start, 3)
     logger.info(
         "verify_done",
         extra={
-            "verdict": output.verdict,
+            "verdict": verdict,
             "passed": passed_count,
             "total": len(results),
             "elapsed": elapsed,
@@ -987,10 +1035,10 @@ def verify_node(state: dict) -> dict:
     )
 
     return {
-        "verification_verdict": output.verdict,
+        "verification_verdict": verdict,
         "verification_results": results,
-        "verification_summary": output.summary,
-        "verdict": output.verdict,  # top-level for routing
+        "verification_summary": summary,
+        "verdict": verdict,  # top-level for routing
         "phase": "verify",
     }
 
@@ -1001,7 +1049,7 @@ def verify_node(state: dict) -> dict:
 
 def after_action_review_node(state: dict) -> dict:
     """Reflect on the run and produce an after-action review.  Uses
-    call_llm_structured with AAROutput.  Writes AAR to work/aar/ directory."""
+    call_llm_with_fallback with AAROutput.  Writes AAR to work/aar/ directory."""
     start = time.time()
     task = state.get("task", "")
     subtasks = state.get("subtasks", [])
@@ -1040,10 +1088,9 @@ def after_action_review_node(state: dict) -> dict:
     )
 
     try:
-        output = call_llm_structured(
+        response = call_llm_with_fallback(
             prompt=prompt,
             models=models,
-            response_model=AAROutput,
             phase="aar",
             config=config,
             cwd=cwd,
@@ -1059,7 +1106,18 @@ def after_action_review_node(state: dict) -> dict:
             "phase": "aar",
         }
 
-    aar_data = output.model_dump()
+    parsed = extract_json(response.get("content", ""))
+    if parsed is None:
+        parsed = rescue_json(response.get("content", "")) or {}
+
+    aar_data = {
+        "what_worked": parsed.get("what_worked", []),
+        "what_failed": parsed.get("what_failed", []),
+        "context_gaps": parsed.get("context_gaps", []),
+        "tool_opportunities": parsed.get("tool_opportunities", []),
+        "prompt_improvements": parsed.get("prompt_improvements", []),
+        "workflow_improvements": parsed.get("workflow_improvements", []),
+    }
 
     # Write AAR to disk
     aar_dir = Path(cwd or ".") / "work" / "aar"
@@ -1076,9 +1134,9 @@ def after_action_review_node(state: dict) -> dict:
     logger.info(
         "aar_done",
         extra={
-            "num_worked": len(output.what_worked),
-            "num_failed": len(output.what_failed),
-            "num_context_gaps": len(output.context_gaps),
+            "num_worked": len(aar_data["what_worked"]),
+            "num_failed": len(aar_data["what_failed"]),
+            "num_context_gaps": len(aar_data["context_gaps"]),
             "elapsed": elapsed,
         },
     )

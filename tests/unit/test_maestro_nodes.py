@@ -39,14 +39,19 @@ class TestDecomposeNode:
         assert result["phase"] == "decompose"
 
     def test_handles_unparseable_response(self, mock_llm):
+        """When JSON can't be parsed and rescue_json also fails,
+        node returns empty subtasks gracefully (no crash)."""
         mock_llm.append({"content": "not json at all", "model": "mock", "latency": 0.1})
 
-        state = {"task": "Do something"}
-        result = decompose_node(state)
+        with patch("langgraph_maestro.nodes.decompose.rescue_json", return_value=None):
+            state = {"task": "Do something"}
+            result = decompose_node(state)
 
-        assert "errors" in result
+        assert result["subtasks"] == []
+        assert result["phase"] == "decompose"
 
     def test_handles_empty_subtasks(self, mock_llm):
+        """Empty subtasks list is returned as-is (text-based parsing has no min_length)."""
         mock_llm.append({
             "content": json.dumps({"subtasks": [], "strategy": "execute"}),
             "model": "mock",
@@ -56,7 +61,8 @@ class TestDecomposeNode:
         state = {"task": "Do something"}
         result = decompose_node(state)
 
-        assert "errors" in result
+        assert result["subtasks"] == []
+        assert result["strategy"] == "execute"
 
 
 

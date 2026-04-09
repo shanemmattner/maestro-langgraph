@@ -5,7 +5,6 @@ from langgraph_maestro.nodes import (
     make_execute_node,
     make_review_node,
 )
-from langgraph_maestro.core.schemas import DecomposeOutput
 from langgraph_maestro.core.config import workflow_config_path
 from pathlib import Path
 
@@ -14,7 +13,6 @@ _PROMPTS = str(Path(__file__).parent / "prompts")
 
 decompose_node = make_decompose_node(
     config_path_default=_CONFIG,
-    schema_class=DecomposeOutput,
     prompts_dir=_PROMPTS,
 )
 

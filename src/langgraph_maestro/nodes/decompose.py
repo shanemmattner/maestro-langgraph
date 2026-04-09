@@ -3,10 +3,10 @@
 import logging
 import time
 from pathlib import Path
-from typing import Any, Callable, Type
+from typing import Any, Callable
 
 from langgraph_maestro.core.config import load_config, get_models_for_phase
-from langgraph_maestro.core.structured import call_llm_structured
+from langgraph_maestro.core.llm import call_llm_with_fallback, extract_json, rescue_json
 
 logger = logging.getLogger(__name__)
 
@@ -19,14 +19,12 @@ def _load_prompt(name: str, prompts_dir: Path) -> str:
 
 def make_decompose_node(
     config_path_default: str,
-    schema_class: Type[Any],
     prompts_dir: str,
 ) -> Callable[[dict], dict]:
     """Create a decompose node with the given configuration.
-    
+
     Args:
         config_path_default: Default path to the config file
-        schema_class: Pydantic model class for structured output
         prompts_dir: Path to the prompts directory
     """
     prompts_path = Path(prompts_dir)
@@ -52,10 +50,9 @@ def make_decompose_node(
             prompt = improve_prompt(prompt, config=config)
 
         try:
-            output = call_llm_structured(
+            response = call_llm_with_fallback(
                 prompt=prompt,
                 models=models,
-                response_model=schema_class,
                 phase="decompose",
                 config=config,
                 cwd=cwd,
@@ -68,7 +65,19 @@ def make_decompose_node(
                 "phase": "decompose",
             }
 
-        subtasks = [t.model_dump() for t in output.subtasks]
+        content = response.get("content", "")
+        parsed = extract_json(content)
+        if parsed is None:
+            parsed = rescue_json(content) or {}
+
+        raw_subtasks = parsed.get("subtasks", [])
+        if not isinstance(raw_subtasks, list):
+            raw_subtasks = []
+
+        subtasks = []
+        for item in raw_subtasks:
+            if isinstance(item, dict):
+                subtasks.append(item)
 
         # Normalize: ensure each subtask has runtime tracking fields
         for i, t in enumerate(subtasks):
@@ -77,7 +86,10 @@ def make_decompose_node(
             t.setdefault("status", "pending")
             t.setdefault("attempts", 0)
 
-        strategy = output.strategy
+        strategy = parsed.get("strategy", "execute")
+        if strategy not in ("execute", "split", "refine", "blocked"):
+            strategy = "execute"
+
         elapsed = round(time.time() - start, 3)
 
         logger.info(
