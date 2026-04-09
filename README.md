@@ -12,6 +12,8 @@ LLMs must never rely on training data for verifiable facts. If there's documenta
 
 Every agent should actively search for evidence to support its approach. Not "I think this is correct" but "according to [source], this is the documented way to do it." When an agent chooses an implementation pattern, it should find proof that the pattern works -- a docs page, a Stack Overflow answer, a GitHub example. If it can't find evidence, that's a signal the approach might be wrong.
 
+Search is free and local (SearXNG + Crawl4AI), so prefer re-searching over assuming. Future optimization: cache research results to avoid redundant lookups across agents working on the same problem.
+
 ### 3. One Agent, One Prompt, One Task
 Each agent gets a single, focused job. No sprawling mega-prompts that plan, execute, review, and fix in one shot. LangGraph's value is decomposition: each node does one thing well, the graph handles orchestration. If a node is doing two things, split it into two nodes.
 
