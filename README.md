@@ -64,7 +64,17 @@ Before any agent executes, invest in building its context:
 
 This means the "research and build agent" step is where most of the intelligence lives. Execution is almost mechanical once the context is right.
 
-### 9. Real-World E2E Testing
+### 9. Self-Improving Workflows
+Workflows are not static. Every run is an opportunity to improve the system:
+
+- **After-action review**: What worked? What failed? What context was missing? Capture learnings.
+- **Build deterministic tools**: If an LLM keeps doing the same analysis, write a Python script. If it keeps searching for the same docs, cache them. Every repeated LLM call is a candidate for a reliable, deterministic replacement.
+- **Specialize agents over time**: Generic agents become domain experts. Research results become baked-in context. One-off prompts become battle-tested templates.
+- **Evolve the graph itself**: Add new nodes, remove ineffective ones, change routing logic based on what actually works. The workflow that runs on day 30 should be fundamentally better than day 1.
+
+The goal: LLMs handle novel reasoning, deterministic tools handle everything else. Over time, more work shifts from LLM to tool.
+
+### 10. Real-World E2E Testing
 Ask: "What would a real human user do to test this?" Then automate that. The goal is to replace manual human testing entirely -- the automated test must be trustworthy enough that you don't need to manually verify after. Not mocked unit tests on fake data -- real inputs through the real system producing real outputs. When you can't fully automate it, be explicit about what the user needs to help set up.
 
 ## Features
