@@ -368,7 +368,7 @@ def build_cmd(prompt: str, *, model: str,
     effective_prompt = (agent_prompt + "\n\n" + system_prompt if agent_prompt else system_prompt)
     # Strip provider prefix (e.g. "claude_code:opus" -> "opus")
     cli_model = model.split(":", 1)[1] if ":" in model else model
-    cmd = ["claude", "-p",
+    cmd = ["claude",
            "--system-prompt", effective_prompt,
            "--model", cli_model,
            "--output-format", "stream-json",
